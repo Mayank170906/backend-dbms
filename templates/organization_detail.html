@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Organization{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <a href="/" class="text-sm text-indigo-600 hover:underline">&larr; Dashboard</a>
+  <h1 id="org-name" class="text-2xl font-semibold mt-1">Loading…</h1>
+  <p id="org-description" class="text-gray-500 text-sm mt-1"></p>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="lg:col-span-2 space-y-6">
+    <div class="bg-white rounded shadow p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold">Projects</h2>
+        <button id="new-project-btn" class="text-sm text-indigo-600 hover:underline">+ New project</button>
+      </div>
+      <form id="new-project-form" class="hidden space-y-3 mb-4 border border-gray-200 rounded p-3">
+        <input name="name" placeholder="Project name" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+        <textarea name="description" placeholder="Description" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
+        <p id="new-project-error" class="text-sm text-red-600 hidden"></p>
+        <div class="flex gap-2">
+          <button type="submit" class="bg-indigo-600 text-white rounded px-3 py-1.5 text-sm hover:bg-indigo-700">Create</button>
+          <button type="button" id="cancel-new-project" class="text-sm text-gray-600 hover:underline">Cancel</button>
+        </div>
+      </form>
+      <div id="project-list" class="grid gap-3 sm:grid-cols-2"></div>
+      <p id="project-empty" class="hidden text-gray-500 text-sm">No projects yet.</p>
+    </div>
+
+    <div class="bg-white rounded shadow p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold">Teams</h2>
+        <button id="new-team-btn" class="text-sm text-indigo-600 hover:underline">+ New team</button>
+      </div>
+      <form id="new-team-form" class="hidden space-y-3 mb-4 border border-gray-200 rounded p-3">
+        <input name="name" placeholder="Team name" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+        <textarea name="description" placeholder="Description" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
+        <p id="new-team-error" class="text-sm text-red-600 hidden"></p>
+        <div class="flex gap-2">
+          <button type="submit" class="bg-indigo-600 text-white rounded px-3 py-1.5 text-sm hover:bg-indigo-700">Create</button>
+          <button type="button" id="cancel-new-team" class="text-sm text-gray-600 hover:underline">Cancel</button>
+        </div>
+      </form>
+      <ul id="team-list" class="divide-y divide-gray-100 text-sm"></ul>
+      <p id="team-empty" class="hidden text-gray-500 text-sm">No teams yet.</p>
+    </div>
+  </section>
+
+  <section class="bg-white rounded shadow p-4 h-fit">
+    <h2 class="font-semibold mb-3">Members</h2>
+    <form id="invite-form" class="flex gap-2 mb-4">
+      <input id="invite-username" placeholder="Username" required class="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm">
+      <select id="invite-role" class="border border-gray-300 rounded px-2 py-1.5 text-sm">
+        <option value="MEMBER">Member</option>
+        <option value="ADMIN">Admin</option>
+        <option value="VIEWER">Viewer</option>
+      </select>
+      <button type="submit" class="bg-indigo-600 text-white rounded px-3 py-1.5 text-sm hover:bg-indigo-700">Invite</button>
+    </form>
+    <p id="invite-error" class="text-sm text-red-600 hidden mb-2"></p>
+    <ul id="member-list" class="divide-y divide-gray-100 text-sm"></ul>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script type="module" src="{% static 'js/pages/organization_detail.js' %}"></script>
+{% endblock %}

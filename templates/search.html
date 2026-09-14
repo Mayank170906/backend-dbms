@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">Search results for "<span id="search-query"></span>"</h1>
+
+<div class="space-y-6">
+  <section>
+    <h2 class="font-semibold mb-2">Projects</h2>
+    <ul id="search-projects" class="bg-white rounded shadow divide-y divide-gray-100 text-sm"></ul>
+    <p id="search-projects-empty" class="hidden text-gray-500 text-sm mt-1">No matching projects.</p>
+  </section>
+  <section>
+    <h2 class="font-semibold mb-2">Tasks</h2>
+    <ul id="search-tasks" class="bg-white rounded shadow divide-y divide-gray-100 text-sm"></ul>
+    <p id="search-tasks-empty" class="hidden text-gray-500 text-sm mt-1">No matching tasks.</p>
+  </section>
+  <section>
+    <h2 class="font-semibold mb-2">Comments</h2>
+    <ul id="search-comments" class="bg-white rounded shadow divide-y divide-gray-100 text-sm"></ul>
+    <p id="search-comments-empty" class="hidden text-gray-500 text-sm mt-1">No matching comments.</p>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script type="module" src="{% static 'js/pages/search.js' %}"></script>
+{% endblock %}

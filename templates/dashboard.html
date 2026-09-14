@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-semibold">Your organizations</h1>
+  <button id="new-org-btn" class="bg-indigo-600 text-white rounded px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+    New organization
+  </button>
+</div>
+
+<form id="new-org-form" class="hidden bg-white p-4 rounded shadow mb-6 space-y-3">
+  <div>
+    <label class="block text-sm font-medium mb-1" for="org-name">Name</label>
+    <input id="org-name" name="name" required class="w-full border border-gray-300 rounded px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="org-description">Description</label>
+    <textarea id="org-description" name="description" rows="2" class="w-full border border-gray-300 rounded px-3 py-2"></textarea>
+  </div>
+  <p id="new-org-error" class="text-sm text-red-600 hidden"></p>
+  <div class="flex gap-2">
+    <button type="submit" class="bg-indigo-600 text-white rounded px-4 py-2 text-sm font-medium hover:bg-indigo-700">Create</button>
+    <button type="button" id="cancel-new-org" class="text-sm text-gray-600 hover:underline">Cancel</button>
+  </div>
+</form>
+
+<div id="org-list" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+<p id="org-empty" class="hidden text-gray-500 text-sm">
+  You don't belong to any organizations yet. Create one to get started.
+</p>
+{% endblock %}
+{% block scripts %}
+<script type="module" src="{% static 'js/pages/dashboard.js' %}"></script>
+{% endblock %}

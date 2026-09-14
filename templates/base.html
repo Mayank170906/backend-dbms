@@ -1,0 +1,40 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Backend DBMS{% endblock %}</title>
+  <!-- Play CDN: zero build step, matches this project's backend-first
+       scope. A real deployment would compile Tailwind instead of shipping
+       its JIT compiler to the browser — noted in the README as a known
+       Phase 12 production gap, not an oversight. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+  <header class="bg-white border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
+      <a href="/" class="font-semibold text-lg whitespace-nowrap">Backend DBMS</a>
+      <form id="nav-search-form" class="flex-1 max-w-md">
+        <input id="nav-search-input" type="search" placeholder="Search tasks, projects, comments…"
+               class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+      </form>
+      <nav class="flex items-center gap-4 text-sm ml-auto">
+        <a id="notif-link" href="/notifications/" class="relative">
+          Notifications
+          <span id="notif-badge" class="hidden absolute -top-2 -right-3 bg-red-600 text-white text-xs rounded-full px-1.5 leading-4">0</span>
+        </a>
+        <span id="nav-auth"></span>
+      </nav>
+    </div>
+  </header>
+  <main class="flex-1 max-w-6xl mx-auto w-full px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+  <script type="module">
+    import { initNav } from "{% static 'js/nav.js' %}";
+    initNav();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,37 @@
+/* Small hand-written additions Tailwind's utility classes don't cover
+   cleanly — drag-and-drop affordances and the kanban column layout.
+   Everything else in the frontend is plain Tailwind utility classes. */
+
+.kanban-board {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.kanban-column {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  min-height: 200px;
+}
+
+.kanban-column.drag-over {
+  outline: 2px dashed #6366f1;
+  outline-offset: -4px;
+}
+
+.kanban-card {
+  cursor: grab;
+}
+
+.kanban-card:active {
+  cursor: grabbing;
+}
+
+.kanban-card.dragging {
+  opacity: 0.4;
+}
