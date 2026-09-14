@@ -1,0 +1,4 @@
+from apps.notifications.routing import websocket_urlpatterns as notification_ws_urlpatterns
+from apps.projects.routing import websocket_urlpatterns as project_ws_urlpatterns
+
+websocket_urlpatterns = project_ws_urlpatterns + notification_ws_urlpatterns
