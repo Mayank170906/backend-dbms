@@ -1,0 +1,112 @@
+# Production topology. Key differences from docker-compose.yml (dev):
+#
+#   - No source bind-mount: the image built by the Dockerfile is deployed
+#     as-is (static files already collected at build time), not
+#     overlaid with a live host checkout.
+#   - web runs `daphne` directly instead of Django's dev server —
+#     daphne is Channels' documented production ASGI server and is what
+#     serves both plain HTTP and the WebSocket endpoints (Phase 9) from
+#     the same process/port; Django's dev server (used in
+#     docker-compose.yml purely for its autoreload) is explicitly
+#     unfit for production regardless of Channels.
+#   - DJANGO_SETTINGS_MODULE=config.settings.production, which enforces
+#     SECRET_KEY/ALLOWED_HOSTS are actually set (Phase 1) and turns on
+#     HSTS/secure-cookie/HTTPS-redirect hardening (Phase 12 security
+#     review).
+#   - Postgres/Redis ports are not published to the host — only `web`
+#     needs to be reachable from outside the compose network, and only
+#     through a TLS-terminating reverse proxy in front of it (not shown
+#     here; this file assumes one exists upstream of `web:8000`).
+#   - `restart: unless-stopped` on every long-running service.
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+#   docker compose -f docker-compose.prod.yml exec web python manage.py migrate
+
+x-app-env: &app-env
+  DJANGO_SETTINGS_MODULE: config.settings.production
+  DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-backend_dbms}
+  REDIS_URL: redis://redis:6379/0
+  CELERY_BROKER_URL: redis://redis:6379/0
+  CELERY_RESULT_BACKEND: redis://redis:6379/1
+  CACHE_URL: redis://redis:6379/2
+  CHANNELS_REDIS_URL: redis://redis:6379/3
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-backend_dbms}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    command: daphne -b 0.0.0.0 -p 8000 config.asgi:application
+    volumes:
+      - media_data:/app/media
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.production
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    restart: unless-stopped
+    command: celery -A config worker --loglevel=info
+    volumes:
+      - media_data:/app/media
+    env_file:
+      - .env.production
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  beat:
+    build: .
+    restart: unless-stopped
+    command: celery -A config beat --loglevel=info
+    volumes:
+      - media_data:/app/media
+    env_file:
+      - .env.production
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_data:

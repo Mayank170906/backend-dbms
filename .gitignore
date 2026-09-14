@@ -1,0 +1,41 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Environment variables
+.env
+.env.production
+.env.*.local
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# Celery
+celerybeat-schedule
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated at dev time (e.g. `manage.py spectacular --file schema.yml`),
+# not a source file — /api/schema/ regenerates this from code on demand.
+schema.yml
+
+# Editors
+.vscode/
+.idea/
+
+# Claude Code local session state (not project source)
+.claude/
+
