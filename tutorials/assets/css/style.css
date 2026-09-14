@@ -423,7 +423,8 @@ li { margin: 0.35rem 0; }
 }
 .card:hover .card-icon { transform: scale(1.1); }
 .card h4 { margin: 0.65rem 0 0.3rem; font-size: 1rem; font-weight: 700; }
-.card p { margin: 0; font-size: 0.88rem; color: var(--text-muted); }
+.card p { margin: 0; font-size: 0.88rem; color: var(--text-muted); word-break: break-word; overflow-wrap: break-word; }
+.card a { word-break: break-all; }
 
 pre {
   position: relative;
