@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Running Tests — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "testing/running-tests.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Running <span class="accent-word">Tests</span></h1>
+      <p class="page-subtitle">The exact commands, and what they need to be reachable.</p>
+    </div>
+
+
+    <pre><code>uv run pytest
+uv run pytest --cov=apps
+uv run pytest tests/test_workflow_transitions.py -v</code></pre>
+    <ul>
+      <li>Needs a reachable PostgreSQL (<code>DATABASE_URL</code>) — <code>--reuse-db</code> keeps a persistent test database across runs instead of recreating it every time.</li>
+      <li>The WebSocket test (<code>test_websocket_consumers.py</code>) needs <code>asyncio_mode = "auto"</code>, already set in <code>pyproject.toml</code> — no extra flag required.</li>
+      <li>After changing a model, drop the stale test schema once with <code>uv run pytest --create-db</code>.</li>
+    </ul>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

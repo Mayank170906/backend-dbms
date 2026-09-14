@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attribution — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "legal/attribution.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Legal: <span class="accent-word">Attribution</span></h1>
+      <p class="page-subtitle">Credits for fonts and third-party packages this project depends on — none of which this project claims ownership over.</p>
+    </div>
+
+
+    <h2>Fonts</h2>
+    <ul>
+      <li><a href="https://fonts.google.com/specimen/Inter">Inter</a> — via Google Fonts.</li>
+      <li><a href="https://fonts.google.com/specimen/JetBrains+Mono">JetBrains Mono</a> — via Google Fonts.</li>
+    </ul>
+
+    <h2>Third-party packages (from pyproject.toml)</h2>
+    <p>Each of the following is © its respective authors, under its own license — see <a href="../overview/technology-stack.html">Technology Stack</a> for how each is actually used in this project.</p>
+    <ul>
+      <li>Django, Django REST Framework, django-cors-headers, django-filter</li>
+      <li>djangorestframework-simplejwt</li>
+      <li>drf-spectacular</li>
+      <li>Celery, Redis (redis-py), Channels, channels-redis, Daphne</li>
+      <li>psycopg, dj-database-url</li>
+      <li>WhiteNoise</li>
+      <li>python-dotenv</li>
+      <li>Pillow</li>
+      <li>pytest, pytest-django, pytest-asyncio, pytest-cov</li>
+      <li>uv (Astral)</li>
+    </ul>
+    <p>PostgreSQL, Docker, GitHub, Render, and Supabase are third-party platforms/software used by this project and are the property of their respective owners.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

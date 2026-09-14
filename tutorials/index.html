@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = ""; window.DOCS_PAGE = "index.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Backend DBMS — <span class="accent-word">Documentation Hub</span></h1>
+      <p class="page-subtitle">A multi-tenant workflow &amp; project management platform, documented from the actual source: what's implemented, how it's architected, and how it ships.</p>
+    </div>
+
+
+    <p>
+      Backend DBMS is a self-contained, multi-tenant workflow &amp; project management
+      platform (a Jira/Linear/Trello-style tool) built to demonstrate production-grade
+      Django backend engineering — REST APIs, relational data modeling, JWT auth,
+      transactions, caching, async processing, and real-time updates over WebSocket.
+    </p>
+
+    <div class="card-grid" style="margin-top:1.5rem">
+      <div class="card" style="cursor:default">
+        <span class="card-icon">🚀</span>
+        <h4>Live</h4>
+        <p><a href="https://backend-dbms-p4su.onrender.com/">backend-dbms-p4su.onrender.com</a></p>
+      </div>
+      <div class="card" style="cursor:default">
+        <span class="card-icon">💻</span>
+        <h4>Source</h4>
+        <p><a href="https://github.com/Mayank170906/backend-dbms">github.com/Mayank170906/backend-dbms</a></p>
+      </div>
+      <div class="card" style="cursor:default">
+        <span class="card-icon">✅</span>
+        <h4>Status</h4>
+        <p>Core app complete (Phases 1–12). <a href="overview/current-status.html">Full breakdown →</a></p>
+      </div>
+    </div>
+
+    <h2>The System, One Diagram</h2>
+    <div class="diagram-svg">
+      <svg viewBox="0 0 680 300" role="img" aria-labelledby="hub-title hub-desc">
+        <title id="hub-title">System overview</title>
+        <desc id="hub-desc">Browser talks over HTTP and WebSocket to the Django backend, which sits on PostgreSQL, Redis, a Celery worker and Celery beat.</desc>
+        <defs>
+          <marker id="arrow-hub" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--text-muted)"></path>
+          </marker>
+        </defs>
+        <g class="sd-node">
+          <rect x="190" y="10" width="300" height="56" rx="10" class="sd-box sd-primary"></rect>
+          <text x="340" y="35" text-anchor="middle" class="sd-title">Browser / Frontend</text>
+          <text x="340" y="53" text-anchor="middle" class="sd-sub">HTML + Tailwind + vanilla JS</text>
+        </g>
+        <line x1="340" y1="66" x2="340" y2="100" class="sd-arrow" marker-end="url(#arrow-hub)"></line>
+        <text x="340" y="88" text-anchor="middle" class="sd-arrow-label">HTTP (JSON) &amp; WebSocket</text>
+        <g class="sd-node">
+          <rect x="190" y="102" width="300" height="56" rx="10" class="sd-box sd-primary"></rect>
+          <text x="340" y="127" text-anchor="middle" class="sd-title">Django Backend</text>
+          <text x="340" y="145" text-anchor="middle" class="sd-sub">DRF API · Channels · Service layer</text>
+        </g>
+        <path d="M290,158 L290,190 Q290,200 280,200 L120,200" class="sd-arrow" marker-end="url(#arrow-hub)"></path>
+        <path d="M320,158 L320,200 L200,200" class="sd-arrow" marker-end="url(#arrow-hub)"></path>
+        <path d="M360,158 L360,200 L480,200" class="sd-arrow" marker-end="url(#arrow-hub)"></path>
+        <path d="M390,158 L390,190 Q390,200 400,200 L560,200" class="sd-arrow" marker-end="url(#arrow-hub)"></path>
+        <g class="sd-node">
+          <rect x="20" y="202" width="160" height="60" rx="10" class="sd-box sd-data"></rect>
+          <text x="100" y="228" text-anchor="middle" class="sd-title">PostgreSQL</text>
+          <text x="100" y="246" text-anchor="middle" class="sd-sub">system of record</text>
+        </g>
+        <g class="sd-node">
+          <rect x="200" y="202" width="160" height="60" rx="10" class="sd-box sd-data"></rect>
+          <text x="280" y="228" text-anchor="middle" class="sd-title">Redis</text>
+          <text x="280" y="246" text-anchor="middle" class="sd-sub">cache · broker · channels</text>
+        </g>
+        <g class="sd-node">
+          <rect x="380" y="202" width="150" height="60" rx="10" class="sd-box"></rect>
+          <text x="455" y="228" text-anchor="middle" class="sd-title">Celery Worker</text>
+          <text x="455" y="246" text-anchor="middle" class="sd-sub">background jobs</text>
+        </g>
+        <g class="sd-node">
+          <rect x="550" y="202" width="130" height="60" rx="10" class="sd-box"></rect>
+          <text x="615" y="228" text-anchor="middle" class="sd-title">Celery Beat</text>
+          <text x="615" y="246" text-anchor="middle" class="sd-sub">scheduled jobs</text>
+        </g>
+      </svg>
+      <p class="sd-caption">Redis/Celery/Channels are fully implemented in code but require real infrastructure wherever this is deployed — see <a href="overview/current-status.html">Current Status</a> before assuming they're live everywhere this runs.</p>
+    </div>
+
+    <h2>Quick Start</h2>
+    <pre><code>git clone https://github.com/Mayank170906/backend-dbms.git
+cd backend-dbms
+uv sync
+cp .env.example .env
+uv run python manage.py migrate
+uv run python manage.py runserver</code></pre>
+    <p>Full walkthrough: <a href="getting-started/prerequisites.html">Getting Started</a>.</p>
+
+    <h2>Technology Stack</h2>
+    <p>Python 3.12 · Django 6.1 · Django REST Framework · djangorestframework-simplejwt · PostgreSQL 16 (Supabase in production) · Redis · Celery · Django Channels · Daphne · WhiteNoise · Docker · uv. Full detail, with why each is used: <a href="overview/technology-stack.html">Technology Stack</a>.</p>
+
+    <h2>Documentation Map</h2>
+    <div class="card-grid">
+      <a class="card" href="overview/project-overview.html"><span class="card-icon">📋</span><h4>Overview</h4><p>What this is, features, current status, stack.</p></a>
+      <a class="card" href="getting-started/prerequisites.html"><span class="card-icon">🏁</span><h4>Getting Started</h4><p>Install, configure, run — locally or with Docker.</p></a>
+      <a class="card" href="requirements/srs.html"><span class="card-icon">📄</span><h4>Requirements</h4><p>SRS, FRs/NFRs, actors, use cases, traceability.</p></a>
+      <a class="card" href="architecture/system-architecture.html"><span class="card-icon">🏙️</span><h4>Architecture</h4><p>HLD, LLD, request lifecycle, auth flow, OOP design.</p></a>
+      <a class="card" href="codebase/project-structure.html"><span class="card-icon">🧩</span><h4>Codebase</h4><p>Every app, model, view, serializer, service, and signal.</p></a>
+      <a class="card" href="api/overview.html"><span class="card-icon">🔌</span><h4>API</h4><p>Every endpoint, auth, errors, and examples.</p></a>
+      <a class="card" href="database/overview.html"><span class="card-icon">🗄️</span><h4>Database</h4><p>ER diagram, relationships, constraints, indexes.</p></a>
+      <a class="card" href="workflows/user-workflows.html"><span class="card-icon">🚶</span><h4>Workflows</h4><p>User journeys and step-through sequence diagrams.</p></a>
+      <a class="card" href="testing/architecture.html"><span class="card-icon">🧪</span><h4>Testing</h4><p>Test architecture, every test file, running the suite.</p></a>
+      <a class="card" href="deployment/local.html"><span class="card-icon">🚀</span><h4>Deployment</h4><p>Local, Docker, Render, Supabase, troubleshooting.</p></a>
+      <a class="card" href="developer-notes/django-concepts.html"><span class="card-icon">📓</span><h4>Developer Notes</h4><p>Django/DRF/ORM/auth concepts, taught with real code.</p></a>
+      <a class="card" href="reference/environment-variables.html"><span class="card-icon">📚</span><h4>Reference</h4><p>Env vars, commands, glossary, ADRs, FAQ.</p></a>
+    </div>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="assets/js/nav-data.js"></script>
+<script src="assets/js/search-index.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

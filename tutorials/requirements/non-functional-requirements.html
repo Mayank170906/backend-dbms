@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Non-Functional Requirements — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "requirements/non-functional-requirements.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Non-Functional <span class="accent-word">Requirements</span></h1>
+      <p class="page-subtitle">NFR-001 through NFR-006, with the concrete implementation evidence for each.</p>
+    </div>
+
+
+    <table>
+      <thead><tr><th>ID</th><th>Category</th><th>Requirement</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td>NFR-001</td><td>Security</td><td>Object-level authorization on every endpoint; no tenant can access another's data by manipulating an id (IDOR).</td><td>Queryset scoping by membership everywhere; <code>tests/test_security_idor.py</code></td></tr>
+        <tr><td>NFR-002</td><td>Performance</td><td>List endpoints must not exhibit N+1 query growth as row count increases; expensive aggregates must be cached.</td><td><code>select_related</code>/<code>prefetch_related</code> on <code>TaskViewSet</code>; <code>tests/test_performance.py</code>; project-statistics Redis cache</td></tr>
+        <tr><td>NFR-003</td><td>Reliability</td><td>Multi-step writes that must succeed or fail together are wrapped in a transaction.</td><td><code>@transaction.atomic</code> throughout services; <code>tests/test_transactions.py</code></td></tr>
+        <tr><td>NFR-004</td><td>Availability</td><td>A slow/unavailable email provider must not block the request that triggered the email.</td><td><code>send_password_reset_email</code> as a Celery task</td></tr>
+        <tr><td>NFR-005</td><td>Maintainability</td><td>Business logic lives in a per-app service layer, not views/serializers.</td><td>Every <code>services.py</code>; see <a href="../codebase/services.html">Services</a></td></tr>
+        <tr><td>NFR-006</td><td>Testability</td><td>Automated tests cover models, API behavior, business logic, security/IDOR, transactions, and query performance.</td><td>17 files under <code>tests/</code>; see <a href="../testing/test-cases.html">Test Cases</a></td></tr>
+      </tbody>
+    </table>
+    <p>Throttling (1000/day authenticated, 100/day anonymous, 20/hour on auth endpoints) and pagination (20/page) round out the operational NFRs — see <a href="../api/overview.html">API Overview</a>.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

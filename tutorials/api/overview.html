@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Overview — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "api/overview.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>API <span class="accent-word">Overview</span></h1>
+      <p class="page-subtitle">Base path, format, pagination, filtering, throttling, and schema.</p>
+    </div>
+
+
+    <ul>
+      <li><strong>Base path:</strong> <code>/api/v1/</code>.</li>
+      <li><strong>Format:</strong> JSON. In production the browsable API is disabled — <code>DEFAULT_RENDERER_CLASSES</code> is overridden to <code>["rest_framework.renderers.JSONRenderer"]</code> only.</li>
+      <li><strong>Pagination:</strong> <code>PageNumberPagination</code>, <code>PAGE_SIZE = 20</code>.</li>
+      <li><strong>Filtering:</strong> <code>DjangoFilterBackend</code> (per-viewset <code>filterset_fields</code>/<code>filterset_class</code>) + <code>SearchFilter</code> + <code>OrderingFilter</code>.</li>
+      <li><strong>Throttling:</strong> <code>UserRateThrottle</code> (1000/day) and <code>AnonRateThrottle</code> (100/day) globally, plus a scoped <code>auth</code> throttle (20/hour) on register/login/password-reset.</li>
+      <li><strong>Schema:</strong> <code>drf-spectacular</code> generates an OpenAPI schema at <code>/api/schema/</code>, browsable at <code>/api/docs/</code> (Swagger UI). <code>SERVE_INCLUDE_SCHEMA: False</code>.</li>
+      <li><strong>Error shape:</strong> a custom exception handler wraps every error — see <a href="../api/error-handling.html">Error Handling</a>.</li>
+    </ul>
+    <p>Full route table: <a href="../api/endpoints.html">Endpoints</a>. Auth mechanics: <a href="../api/authentication.html">Authentication</a>.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

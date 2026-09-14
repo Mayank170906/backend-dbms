@@ -1,0 +1,41 @@
+name: Deploy tutorials site to GitHub Pages
+
+# Deploys the tutorials/ folder specifically (not the whole repo) using
+# GitHub's Actions-based Pages deployment — this works regardless of what
+# folder the docs live in, unlike the "/docs on main" dropdown option in
+# the repo's Pages settings, which only supports root or /docs.
+on:
+  push:
+    # This repo's local default branch is "master" (created by `git init`
+    # before GitHub's newer "main" default existed) — trigger on both so
+    # this fires whichever name the branch has once pushed to GitHub,
+    # instead of silently never running because of a name mismatch.
+    branches: [main, master]
+    paths:
+      - "tutorials/**"
+      - ".github/workflows/deploy-tutorials.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: tutorials
+      - id: deployment
+        uses: actions/deploy-pages@v4

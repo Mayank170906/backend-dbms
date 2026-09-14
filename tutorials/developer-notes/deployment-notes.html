@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deployment Notes — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "developer-notes/deployment-notes.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Developer Notes: <span class="accent-word">Deployment Notes</span></h1>
+      <p class="page-subtitle">Container networking, build-time vs. run-time env vars, and one ASGI app for both protocols.</p>
+    </div>
+
+
+    <h2>Why 127.0.0.1 fails inside a container</h2>
+    <p>Inside a container, <code>127.0.0.1</code> means the container itself — not the host machine, and definitely not a separately-hosted database like Supabase. This is the single most common deployment mistake this project's docs call out; see <a href="../deployment/troubleshooting.html">Deployment → Troubleshooting</a>.</p>
+    <h2>Build-time vs. run-time environment</h2>
+    <p>A Docker image is built once and run many times (or on a different host entirely, as with Render building then running the same image). Anything a build step needs — like <code>collectstatic</code> needing <em>some</em> value for settings that validate their presence — has to be satisfiable without the real runtime secrets, which is why the Dockerfile uses throwaway placeholders for that one <code>RUN</code> step.</p>
+    <h2>One ASGI app serves both HTTP and WebSocket</h2>
+    <p><code>config/asgi.py</code>'s <code>ProtocolTypeRouter</code> is why a single Daphne process (and a single Render service) can serve <code>/api/v1/...</code> and <code>ws://.../ws/...</code> at once — there's no separate WebSocket server or port to manage in production.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

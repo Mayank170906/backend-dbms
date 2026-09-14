@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Permissions — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/permissions.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">Permissions</span></h1>
+      <p class="page-subtitle">The two real DRF permission classes — and why there aren't more.</p>
+    </div>
+
+
+<p>Only two custom DRF permission classes exist in the whole codebase. Most access control is actually done by scoping querysets (see <a href="../architecture/system-architecture.html">Multi-Tenancy Model</a>), not by these two — they exist specifically for object-level write checks a queryset filter can't express.</p>
+
+<h2>IsOrganizationAdmin</h2>
+<p><code>apps/organizations/api/permissions.py</code> — object-level only.</p>
+<ul>
+  <li>Safe methods (GET/HEAD/OPTIONS): require an existing <code>Membership</code>.</li>
+  <li>Unsafe methods (POST/PUT/PATCH/DELETE): require <code>Membership.role in [OWNER, ADMIN]</code>.</li>
+</ul>
+
+<h2>IsProjectManager</h2>
+<p><code>apps/projects/api/permissions.py</code> — object-level only.</p>
+<ul>
+  <li>Safe methods: require an existing <code>ProjectMembership</code>.</li>
+  <li>Unsafe methods: require <code>role == MANAGER</code>.</li>
+</ul>
+
+<h2>Why not more permission classes</h2>
+<p>
+  Most authorization questions in this project are actually "does this row belong to
+  a tenant/project I'm a member of" — which is answered by filtering
+  <code>get_queryset()</code>, not by a permission class evaluated per-object after the
+  fact. That's also what produces the 404-vs-403 behavior: a non-member's request never
+  reaches a permission check for an object it can't see, because the object was never in
+  its queryset to begin with. See <a href="../api/error-handling.html">API → Error
+  Handling</a>.
+</p>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

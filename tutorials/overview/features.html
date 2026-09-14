@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Features — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "overview/features.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Features, <span class="accent-word">App by App</span></h1>
+      <p class="page-subtitle">What's actually implemented, grouped by the Django app that owns it.</p>
+    </div>
+
+
+    <p>
+      Every feature below is backed by a real model and service method — see
+      <a href="../codebase/services.html">Services</a> for the exact call
+      each one makes.
+    </p>
+
+    <h2>Accounts</h2>
+    <ul>
+      <li>Registration, login, logout with JWT access/refresh tokens (rotation + blacklist on logout).</li>
+      <li>Password reset request/confirm flow (always returns 200 to avoid revealing whether an account exists).</li>
+      <li>Authenticated "me" endpoint and a searchable user directory (<code>UserViewSet</code>).</li>
+    </ul>
+
+    <h2>Organizations &amp; Teams</h2>
+    <ul>
+      <li>Organization creation (creator becomes <code>OWNER</code> automatically via <code>OrganizationService.create_organization</code>).</li>
+      <li>Membership management with roles OWNER/ADMIN/MEMBER/VIEWER.</li>
+      <li>Teams and team membership within an organization.</li>
+    </ul>
+
+    <h2>Workflows</h2>
+    <ul>
+      <li>Per-organization, admin-defined workflows: a <code>Workflow</code> has ordered <code>WorkflowState</code>s and explicit <code>WorkflowTransition</code>s.</li>
+      <li>Each transition can restrict which project roles are allowed to perform it (<code>allowed_roles</code>).</li>
+    </ul>
+
+    <h2>Projects</h2>
+    <ul>
+      <li>Projects scoped to an organization, each optionally bound to a workflow.</li>
+      <li>Per-project membership with roles MANAGER/DEVELOPER/VIEWER.</li>
+      <li>Project activity feed, computed statistics, and CSV task export (run asynchronously via Celery).</li>
+    </ul>
+
+    <h2>Tasks</h2>
+    <ul>
+      <li>Task CRUD with priority, due date, estimated hours, labels, and multiple assignees.</li>
+      <li>Workflow-governed state transitions (<code>WorkflowService.transition_task</code>) — a task can only move along transitions its workflow actually defines, and only by a role that transition allows.</li>
+      <li>Assignment, with an activity log entry and a notification to the assignee.</li>
+    </ul>
+
+    <h2>Comments</h2>
+    <ul>
+      <li>Threaded comments on tasks.</li>
+      <li><code>@username</code> mention parsing that notifies only mentioned users who are actual project members (no notification for a mention of a non-member or a made-up username, and no self-notification).</li>
+    </ul>
+
+    <h2>Activity, Notifications, Analytics</h2>
+    <ul>
+      <li>An append-only <code>ActivityLog</code> (immutable — its <code>save()</code>/<code>delete()</code> are overridden to reject updates/deletes) recording task/comment/membership/workflow events.</li>
+      <li>A per-user <code>Notification</code> inbox (mark-read / mark-all-read) fed by the same service calls that write activity.</li>
+      <li>Cross-model full-text search across projects, tasks, and comments via Postgres <code>SearchVectorField</code>/<code>GinIndex</code>, exposed at <code>/api/v1/search/</code>.</li>
+    </ul>
+
+    <h2>Real-time</h2>
+    <ul>
+      <li>A per-project WebSocket feed (<code>ws/projects/&lt;id&gt;/</code>) broadcasting activity events to connected members.</li>
+      <li>A per-user WebSocket feed (<code>ws/notifications/</code>) broadcasting new notifications.</li>
+      <li>Both are JWT-authenticated at connect time and both are populated by <code>transaction.on_commit()</code> hooks, so a rolled-back change never produces a live event.</li>
+    </ul>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

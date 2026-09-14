@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "deployment/docker.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Deployment: <span class="accent-word">Docker</span></h1>
+      <p class="page-subtitle">The Dockerfile, and how the dev and prod compose files differ.</p>
+    </div>
+
+
+    <h2>Dockerfile</h2>
+    <pre><code># syntax=docker/dockerfile:1
+FROM python:3.12-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/usr/local
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:0.8.14 /uv /usr/local/bin/uv
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    apt-get update \
+    && apt-get install -y --no-install-recommends build-essential libpq-dev \
+    && uv sync --frozen --no-install-project --no-dev \
+    && apt-get purge -y build-essential libpq-dev \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . .
+RUN chmod +x docker/entrypoint.sh
+
+RUN SECRET_KEY=build-time-placeholder-unused-at-runtime \
+    ALLOWED_HOSTS=localhost \
+    DATABASE_URL=postgres://build:build@localhost/build \
+    python manage.py collectstatic --noinput --settings=config.settings.production
+
+RUN groupadd --system app && useradd --system --gid app --home /app app \
+    && mkdir -p /app/media \
+    && chown -R app:app /app
+USER app
+
+EXPOSE 8000
+ENTRYPOINT ["docker/entrypoint.sh"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]</code></pre>
+    <p>Notes on specific choices:</p>
+    <ul>
+      <li><strong>Dependencies installed before source is copied</strong> — so the dependency-install layer stays cached across builds unless <code>pyproject.toml</code>/<code>uv.lock</code> actually change.</li>
+      <li><strong>Build tools installed, used, then purged in the same layer</strong> (<code>build-essential libpq-dev</code>) — they're only needed to build any dependency without a prebuilt wheel; <code>libpq5</code> alone is what's needed at runtime.</li>
+      <li><strong><code>collectstatic</code> runs at build time against placeholder values</strong> — static assets are content-hashed by <code>ManifestStaticFilesStorage</code>, not by <code>SECRET_KEY</code> or the database, so this is safe. See <a href="../deployment/troubleshooting.html">Troubleshooting</a> for why this specific trick exists.</li>
+      <li><strong>Runs as a non-root user in every environment</strong>, dev included — one Dockerfile, one behavior to reason about.</li>
+      <li><strong><code>ENTRYPOINT docker/entrypoint.sh</code></strong> waits for Postgres to accept connections (a retry loop using <code>dj_database_url</code> + <code>psycopg</code>) before <code>exec</code>-ing whatever <code>CMD</code> was given — this is what lets <code>web</code>/<code>worker</code>/<code>beat</code> all start reliably even if the <code>db</code> container is still initializing.</li>
+    </ul>
+
+    <h2>docker-compose.yml (dev) vs docker-compose.prod.yml</h2>
+    <table>
+      <thead><tr><th></th><th>dev</th><th>prod</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>bind-mounted (<code>.:/app</code>) for live reload</td><td>not mounted — the image's own copy is used</td></tr>
+        <tr><td><code>web</code> command</td><td><code>python manage.py runserver 0.0.0.0:8000</code></td><td><code>daphne -b 0.0.0.0 -p 8000 config.asgi:application</code></td></tr>
+        <tr><td>Settings module</td><td>development (default)</td><td><code>DJANGO_SETTINGS_MODULE=config.settings.production</code></td></tr>
+        <tr><td>Env file</td><td><code>.env</code></td><td><code>.env.production</code></td></tr>
+        <tr><td>db/redis ports</td><td>published to host</td><td>not published</td></tr>
+        <tr><td>Restart policy</td><td>default (none)</td><td><code>restart: unless-stopped</code> on every service</td></tr>
+      </tbody>
+    </table>
+    <pre><code>docker compose -f docker-compose.prod.yml --env-file .env.production up -d</code></pre>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

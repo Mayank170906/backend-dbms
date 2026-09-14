@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER Diagram — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "database/er-diagram.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Entity-Relationship <span class="accent-word">Diagram</span></h1>
+      <p class="page-subtitle">All 17 real models and their foreign-key relationships.</p>
+    </div>
+
+
+    <div class="diagram-svg">
+      <svg viewBox="0 0 720 430" role="img" aria-labelledby="er-title er-desc"><title id="er-title">Entity-relationship diagram</title><desc id="er-desc">All 17 real models and their foreign-key relationships, grouped by owning app.</desc><line x1="95.0" y1="47.0" x2="265.0" y2="47.0" class="sd-lane"></line><line x1="265.0" y1="47.0" x2="435.0" y2="47.0" class="sd-lane"></line><line x1="265.0" y1="47.0" x2="265.0" y2="125.0" class="sd-lane"></line><line x1="95.0" y1="47.0" x2="265.0" y2="125.0" class="sd-lane"></line><line x1="435.0" y1="47.0" x2="435.0" y2="125.0" class="sd-lane"></line><line x1="95.0" y1="47.0" x2="435.0" y2="125.0" class="sd-lane"></line><line x1="265.0" y1="47.0" x2="605.0" y2="47.0" class="sd-lane"></line><line x1="605.0" y1="47.0" x2="605.0" y2="125.0" class="sd-lane"></line><line x1="605.0" y1="125.0" x2="605.0" y2="203.0" class="sd-lane"></line><line x1="265.0" y1="47.0" x2="265.0" y2="203.0" class="sd-lane"></line><line x1="605.0" y1="47.0" x2="265.0" y2="203.0" class="sd-lane"></line><line x1="95.0" y1="47.0" x2="265.0" y2="203.0" class="sd-lane"></line><line x1="265.0" y1="203.0" x2="95.0" y2="203.0" class="sd-lane"></line><line x1="95.0" y1="47.0" x2="95.0" y2="203.0" class="sd-lane"></line><line x1="265.0" y1="203.0" x2="95.0" y2="281.0" class="sd-lane"></line><line x1="265.0" y1="203.0" x2="265.0" y2="281.0" class="sd-lane"></line><line x1="605.0" y1="125.0" x2="265.0" y2="281.0" class="sd-lane"></line><line x1="265.0" y1="203.0" x2="435.0" y2="281.0" class="sd-lane"></line><line x1="265.0" y1="281.0" x2="265.0" y2="359.0" class="sd-lane"></line><line x1="95.0" y1="47.0" x2="265.0" y2="359.0" class="sd-lane"></line><line x1="265.0" y1="281.0" x2="435.0" y2="359.0" class="sd-lane"></line><line x1="265.0" y1="47.0" x2="95.0" y2="359.0" class="sd-lane"></line><line x1="265.0" y1="203.0" x2="95.0" y2="359.0" class="sd-lane"></line><line x1="95.0" y1="47.0" x2="605.0" y2="359.0" class="sd-lane"></line><g class="sd-node"><rect x="20" y="20" width="150" height="54" rx="8" class="sd-box sd-primary"></rect><text x="95.0" y="43.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">User</text><text x="95.0" y="60.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">accounts</text></g><g class="sd-node"><rect x="190" y="20" width="150" height="54" rx="8" class="sd-box sd-primary"></rect><text x="265.0" y="43.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">Organization</text><text x="265.0" y="60.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">owner→User (PROTECT)</text></g><g class="sd-node"><rect x="360" y="20" width="150" height="54" rx="8" class="sd-box"></rect><text x="435.0" y="43.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">Team</text><text x="435.0" y="60.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">organization→Org (CASCADE)</text></g><g class="sd-node"><rect x="190" y="98" width="150" height="54" rx="8" class="sd-box"></rect><text x="265.0" y="121.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">Membership</text><text x="265.0" y="138.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">org+user (CASCADE)</text></g><g class="sd-node"><rect x="360" y="98" width="150" height="54" rx="8" class="sd-box"></rect><text x="435.0" y="121.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">TeamMembership</text><text x="435.0" y="138.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">team+user (CASCADE)</text></g><g class="sd-node"><rect x="530" y="20" width="150" height="54" rx="8" class="sd-box"></rect><text x="605.0" y="43.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">Workflow</text><text x="605.0" y="60.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">organization→Org (CASCADE)</text></g><g class="sd-node"><rect x="530" y="98" width="150" height="54" rx="8" class="sd-box"></rect><text x="605.0" y="121.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">WorkflowState</text><text x="605.0" y="138.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">workflow (CASCADE)</text></g><g class="sd-node"><rect x="530" y="176" width="150" height="54" rx="8" class="sd-box"></rect><text x="605.0" y="199.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">WorkflowTransition</text><text x="605.0" y="216.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">from/to state (CASCADE)</text></g><g class="sd-node"><rect x="190" y="176" width="150" height="54" rx="8" class="sd-box"></rect><text x="265.0" y="199.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">Project</text><text x="265.0" y="216.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">org (CASCADE), owner (PROTECT), workflow (PROTECT)</text></g><g class="sd-node"><rect x="20" y="176" width="150" height="54" rx="8" class="sd-box"></rect><text x="95.0" y="199.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">ProjectMembership</text><text x="95.0" y="216.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">project+user (CASCADE)</text></g><g class="sd-node"><rect x="20" y="254" width="150" height="54" rx="8" class="sd-box"></rect><text x="95.0" y="277.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">ProjectExport</text><text x="95.0" y="294.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">project (CASCADE)</text></g><g class="sd-node"><rect x="190" y="254" width="150" height="54" rx="8" class="sd-box"></rect><text x="265.0" y="277.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">Task</text><text x="265.0" y="294.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">project (CASCADE), workflow_state (PROTECT)</text></g><g class="sd-node"><rect x="360" y="254" width="150" height="54" rx="8" class="sd-box"></rect><text x="435.0" y="277.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">Label</text><text x="435.0" y="294.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">project (CASCADE)</text></g><g class="sd-node"><rect x="190" y="332" width="150" height="54" rx="8" class="sd-box"></rect><text x="265.0" y="355.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">TaskAssignment</text><text x="265.0" y="372.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">task+user (CASCADE)</text></g><g class="sd-node"><rect x="360" y="332" width="150" height="54" rx="8" class="sd-box"></rect><text x="435.0" y="355.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">Comment</text><text x="435.0" y="372.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">task (CASCADE)</text></g><g class="sd-node"><rect x="20" y="332" width="150" height="54" rx="8" class="sd-box"></rect><text x="95.0" y="355.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">ActivityLog</text><text x="95.0" y="372.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">org+project (CASCADE), GFK target</text></g><g class="sd-node"><rect x="530" y="332" width="150" height="54" rx="8" class="sd-box"></rect><text x="605.0" y="355.0" text-anchor="middle" class="sd-title" style="font-size:11.5px">Notification</text><text x="605.0" y="372.0" text-anchor="middle" class="sd-sub" style="font-size:8.6px">recipient→User (CASCADE), GFK target</text></g></svg>
+      <p class="sd-caption">Lines are foreign-key relationships (direction omitted for readability at this scale — see <a href="../database/relationships.html">Relationships</a> for the exact <code>on_delete</code> behavior of each one). Full field-level detail: <a href="../codebase/models.html">Codebase → Models</a>.</p>
+    </div>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

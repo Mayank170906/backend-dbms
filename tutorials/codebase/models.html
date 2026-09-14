@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Models — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/models.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">Models</span></h1>
+      <p class="page-subtitle">Every model, field, and constraint, exactly as defined in each app's models.py.</p>
+    </div>
+
+
+<p>Every model, field, and constraint below is taken directly from the current <code>models.py</code> in each app. This is the single most authoritative page in the whole site for "what fields does X actually have" — <a href="../database/models.html">Database → Models</a> links back here rather than duplicating it.</p>
+
+<details class="accordion" open>
+<summary>accounts</summary>
+<div class="accordion-body">
+<h3>User(AbstractUser)</h3>
+<table><thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+<tr><td>email</td><td>EmailField</td><td>unique</td></tr>
+<tr><td>avatar</td><td>ImageField</td><td>upload_to="avatars/", blank/null</td></tr>
+<tr><td>created_at</td><td>DateTimeField</td><td>auto_now_add</td></tr>
+<tr><td>updated_at</td><td>DateTimeField</td><td>auto_now</td></tr>
+</tbody></table>
+<p><code>AUTH_USER_MODEL = "accounts.User"</code>. Inherits username/password/permission fields from <code>AbstractUser</code>.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>organizations</summary>
+<div class="accordion-body">
+<h3>Organization</h3>
+<table><thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+<tr><td>name</td><td>CharField(255)</td><td></td></tr>
+<tr><td>slug</td><td>SlugField(255)</td><td>unique</td></tr>
+<tr><td>description</td><td>TextField</td><td>blank</td></tr>
+<tr><td>owner</td><td>FK(User)</td><td>on_delete=PROTECT, related_name="owned_organizations"</td></tr>
+<tr><td>created_at / updated_at</td><td>DateTimeField</td><td>auto_now_add / auto_now</td></tr>
+</tbody></table>
+<p>Meta: <code>ordering=["name"]</code>, <code>Index(["name"])</code>.</p>
+<h3>Membership</h3>
+<table><thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+<tr><td>organization</td><td>FK(Organization)</td><td>CASCADE, related_name="memberships"</td></tr>
+<tr><td>user</td><td>FK(User)</td><td>CASCADE, related_name="organization_memberships"</td></tr>
+<tr><td>role</td><td>CharField</td><td>Role choices: OWNER/ADMIN/MEMBER/VIEWER, default MEMBER</td></tr>
+<tr><td>joined_at</td><td>DateTimeField</td><td>auto_now_add</td></tr>
+</tbody></table>
+<p>Meta: <code>UniqueConstraint(["organization","user"])</code>, <code>Index(["organization","role"])</code>.</p>
+<h3>Team</h3>
+<p>organization FK(CASCADE), name, description, created_at. Meta: <code>UniqueConstraint(["organization","name"])</code>.</p>
+<h3>TeamMembership</h3>
+<p>team FK(CASCADE), user FK(CASCADE), joined_at. Meta: <code>UniqueConstraint(["team","user"])</code>.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>workflows</summary>
+<div class="accordion-body">
+<h3>Workflow</h3>
+<p>organization FK(CASCADE, related_name="workflows"), name, description, created_at, updated_at. Meta: <code>ordering=["name"]</code>, <code>UniqueConstraint(["organization","name"])</code>.</p>
+<h3>WorkflowState</h3>
+<p>workflow FK(CASCADE, related_name="states"), name CharField(100), slug SlugField(100), order PositiveIntegerField, is_initial/is_terminal BooleanField(default=False). Meta: <code>ordering=["order"]</code>, <code>UniqueConstraint(["workflow","slug"])</code>, <code>UniqueConstraint(["workflow","order"])</code>.</p>
+<h3>WorkflowTransition</h3>
+<p>workflow FK(CASCADE), from_state/to_state FK(WorkflowState, CASCADE, related_name="outgoing_transitions"/"incoming_transitions"), <code>allowed_roles = ArrayField(CharField(20), default=list, blank=True)</code>, created_at. Meta: <code>UniqueConstraint(["workflow","from_state","to_state"])</code>.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>projects</summary>
+<div class="accordion-body">
+<h3>Project</h3>
+<table><thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+<tr><td>organization</td><td>FK(Organization)</td><td>CASCADE, related_name="projects"</td></tr>
+<tr><td>name / slug / description</td><td>CharField / SlugField / TextField</td><td>slug not globally unique</td></tr>
+<tr><td>owner</td><td>FK(User)</td><td>PROTECT, related_name="owned_projects"</td></tr>
+<tr><td>status</td><td>CharField</td><td>Status: ACTIVE/ON_HOLD/COMPLETED/ARCHIVED, default ACTIVE</td></tr>
+<tr><td>workflow</td><td>FK(Workflow)</td><td>PROTECT, null/blank, related_name="projects"</td></tr>
+<tr><td>search_vector</td><td>SearchVectorField</td><td>null/blank, editable=False</td></tr>
+</tbody></table>
+<p>Meta: <code>ordering=["name"]</code>, <code>UniqueConstraint(["organization","slug"])</code>, <code>Index(["organization","status"])</code>, <code>GinIndex(["search_vector"], name="project_search_vector_gin")</code>.</p>
+<h3>ProjectMembership</h3>
+<p>project FK(CASCADE), user FK(CASCADE), role (Role: MANAGER/DEVELOPER/VIEWER, default DEVELOPER), joined_at. Meta: <code>UniqueConstraint(["project","user"])</code>, <code>Index(["project","role"])</code>.</p>
+<h3>ProjectExport</h3>
+<p>project FK(CASCADE, related_name="exports"), requested_by FK(User, SET_NULL, null/blank), status (Status: PENDING/PROCESSING/COMPLETED/FAILED, default PENDING), file FileField(upload_to="exports/", blank), error_message TextField(blank), created_at, completed_at (null/blank). Meta: <code>ordering=["-created_at"]</code>.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>tasks</summary>
+<div class="accordion-body">
+<p>Module-level <code>hex_color_validator = RegexValidator(r"^#[0-9A-Fa-f]{6}$")</code>.</p>
+<h3>Label</h3>
+<p>project FK(CASCADE, related_name="labels"), name CharField(100), color CharField(7, default="#6B7280", validators=[hex_color_validator]). Meta: <code>UniqueConstraint(["project","name"])</code>.</p>
+<h3>Task</h3>
+<table><thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+<tr><td>project</td><td>FK(Project)</td><td>CASCADE, related_name="tasks"</td></tr>
+<tr><td>title / description</td><td>CharField / TextField</td><td></td></tr>
+<tr><td>created_by</td><td>FK(User)</td><td>SET_NULL, null/blank, related_name="created_tasks"</td></tr>
+<tr><td>priority</td><td>CharField</td><td>Priority: LOW/MEDIUM/HIGH/CRITICAL, default MEDIUM</td></tr>
+<tr><td>workflow_state</td><td>FK(WorkflowState)</td><td>PROTECT, null/blank, related_name="tasks"</td></tr>
+<tr><td>due_date</td><td>DateField</td><td>null/blank</td></tr>
+<tr><td>estimated_hours</td><td>DecimalField(6,2)</td><td>null/blank</td></tr>
+<tr><td>labels</td><td>M2M(Label)</td><td>blank, related_name="tasks"</td></tr>
+<tr><td>assignees</td><td>M2M(User, through="TaskAssignment")</td><td>related_name="assigned_tasks"</td></tr>
+<tr><td>search_vector</td><td>SearchVectorField</td><td>null/blank, editable=False</td></tr>
+</tbody></table>
+<p>Meta: <code>ordering=["-created_at"]</code>, indexes on <code>["project","priority"]</code>, <code>["project","due_date"]</code>, <code>["project","workflow_state"]</code>, plus <code>GinIndex(["search_vector"], name="task_search_vector_gin")</code>.</p>
+<h3>TaskAssignment</h3>
+<p>task FK(CASCADE, related_name="assignments"), user FK(CASCADE, related_name="task_assignments"), assigned_at. Meta: <code>UniqueConstraint(["task","user"])</code>.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>comments</summary>
+<div class="accordion-body">
+<h3>Comment</h3>
+<p>task FK(CASCADE, related_name="comments"), author FK(User, SET_NULL, null/blank, related_name="comments"), body TextField, created_at, updated_at, search_vector SearchVectorField(null/blank, editable=False). Meta: <code>ordering=["created_at"]</code>, <code>Index(["task","created_at"])</code>, <code>GinIndex(["search_vector"], name="comment_search_vector_gin")</code>.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>activity</summary>
+<div class="accordion-body">
+<h3>ActivityLog</h3>
+<p>actor FK(User, SET_NULL, null/blank, related_name="activity_logs"), action (Action choices: task.created / task.assigned / task.status_changed / comment.added / project_membership.changed / workflow.changed), content_type FK(ContentType, CASCADE), object_id PositiveBigIntegerField, target = GenericForeignKey("content_type","object_id"), organization FK(CASCADE, related_name="activity_logs"), project FK(CASCADE, null/blank, related_name="activity_logs"), metadata JSONField(default=dict, blank=True), created_at.</p>
+<p>Meta: <code>ordering=["-created_at"]</code>, indexes on <code>["organization","created_at"]</code>, <code>["project","created_at"]</code>, <code>["content_type","object_id"]</code>.</p>
+<p><strong>Immutable by design:</strong> <code>save()</code> raises <code>ValueError</code> if <code>pk is not None</code> (no updates); <code>delete()</code> always raises <code>ValueError</code> (no deletes) — see <a href="../architecture/oop-class-design.html">OOP / Class Design</a>.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>notifications</summary>
+<div class="accordion-body">
+<h3>Notification</h3>
+<p>recipient FK(User, CASCADE, related_name="notifications"), notification_type (NotificationType: task_assigned / task_transitioned / comment_mention / task_due_soon / project_membership_changed / export_ready / project_report), message CharField(255), content_type FK(ContentType, CASCADE, null/blank), object_id (null/blank), target = GenericForeignKey, is_read (default False), created_at, read_at (null/blank).</p>
+<p>Meta: <code>ordering=["-created_at"]</code>, <code>Index(["recipient","is_read"])</code>.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>analytics</summary>
+<div class="accordion-body">
+<p>No models — this app is a query-only layer over the other apps' models (see <a href="../api/architecture.html">API Architecture</a>).</p>
+</div>
+</details>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

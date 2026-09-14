@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Workflows — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "workflows/user-workflows.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>User <span class="accent-word">Workflows</span></h1>
+      <p class="page-subtitle">What a real user actually does, end to end — and what the system does in response at each step.</p>
+    </div>
+
+
+    <h2>1. Onboarding</h2>
+    <ol>
+      <li>User registers with username, email, password. Password is validated (length, similarity, common-password checks) and hashed before storage.</li>
+      <li>User logs in and receives a JWT access token (30 min) and refresh token (7 days).</li>
+      <li>The frontend stores both and attaches the access token as a <code>Bearer</code> header on every subsequent request.</li>
+    </ol>
+    <h2>2. Setting Up an Organization</h2>
+    <ol>
+      <li>User creates an organization. They become its <strong>Owner</strong> automatically — this happens in one atomic transaction so the org can never exist without its owner's membership row.</li>
+      <li>Owner invites teammates by username, choosing a role for each (Admin / Member / Viewer).</li>
+      <li>Optionally, the owner creates Teams within the organization to group people.</li>
+    </ol>
+    <h2>3. Setting Up a Project</h2>
+    <ol>
+      <li>Any organization member creates a project. The creator becomes its <strong>Manager</strong>.</li>
+      <li>Manager adds project members from among the organization's members.</li>
+      <li>Manager either creates a new <strong>Workflow</strong> for the project or attaches an existing one from the organization.</li>
+    </ol>
+    <h2>4. Configuring the Workflow</h2>
+    <ol>
+      <li>Manager defines states — e.g. Backlog (initial) → Todo → In Progress → Code Review → Done (terminal).</li>
+      <li>Manager defines which transitions are legal between which states, and which roles may perform each one.</li>
+      <li>From this point on, the backend — not the frontend — is the sole authority on which moves are legal.</li>
+    </ol>
+    <h2>5. Working with Tasks</h2>
+    <ol>
+      <li>A project member creates a task: title, description, priority, optional due date and estimated hours.</li>
+      <li>The task starts with no workflow state (<code>workflow_state = null</code>) until someone moves it into the workflow's initial state.</li>
+      <li>Members assign the task, attach labels, and comment (typing <code>@username</code> to mention and notify a teammate).</li>
+      <li>A member moves the task through states one legal transition at a time — skipping a state, entering at a non-initial state, or using a role the transition doesn't permit is rejected with a clear error.</li>
+    </ol>
+    <div class="diagram">
+      <div class="box-row"><div class="box">No state</div></div>
+      <div class="arrow-down">↓ move to an initial state (any member)</div>
+      <div class="box-row"><div class="box primary">Backlog</div></div>
+      <div class="arrow-down">↓</div>
+      <div class="box-row"><div class="box">Todo</div></div>
+      <div class="arrow-down">↓</div>
+      <div class="box-row"><div class="box">In Progress</div></div>
+      <div class="arrow-down">↓</div>
+      <div class="box-row"><div class="box">Code Review</div></div>
+      <div class="arrow-down">↓ Manager-only, in this example workflow</div>
+      <div class="box-row"><div class="box primary">Done <span class="sub">terminal</span></div></div>
+    </div>
+    <h2>6. Staying Informed</h2>
+    <ul>
+      <li>Every significant action writes an immutable activity log entry, visible live over WebSocket to anyone with that project's Activity tab open.</li>
+      <li>The affected user gets an in-app notification for anything that concerns them directly — again live over WebSocket.</li>
+      <li>A daily background job notifies assignees of tasks due the next day, and sends project owners a daily summary.</li>
+    </ul>
+    <h2>7. Reviewing &amp; Reporting</h2>
+    <ul>
+      <li>A project's Statistics tab shows task counts, breakdowns, workload per member, and completion time — computed from Postgres, cached in Redis, refreshed the moment relevant data changes.</li>
+      <li>Anyone can search across tasks, projects, and comments they have access to, ranked by relevance.</li>
+      <li>A project's tasks can be exported to CSV on demand; the requester is notified when the file is ready.</li>
+    </ul>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

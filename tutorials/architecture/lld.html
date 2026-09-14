@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Low-Level Design — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "architecture/lld.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Low-Level <span class="accent-word">Design</span></h1>
+      <p class="page-subtitle">The ownership chain and app-by-app layout, one level below HLD.</p>
+    </div>
+
+
+    <p>
+      This is the map that ties the abstract HLD boxes to actual Django apps.
+      See <a href="../codebase/applications.html">Codebase → Applications</a>
+      for a one-paragraph purpose per app, and <a href="../codebase/models.html">Models</a>/
+      <a href="../codebase/services.html">Services</a> for full field/method detail — this
+      page focuses on how the 9 apps relate to each other, not on repeating their internals.
+    </p>
+    <h2>App layout</h2>
+    <pre><code>apps/
+├── accounts/       custom User model, JWT auth endpoints
+├── organizations/  Organization, Membership, Team, TeamMembership
+├── workflows/      Workflow, WorkflowState, WorkflowTransition
+├── projects/       Project, ProjectMembership, ProjectExport
+├── tasks/          Task, Label, TaskAssignment
+├── comments/       Comment (+ @mention notifications)
+├── activity/       ActivityLog (immutable audit trail)
+├── notifications/  Notification (+ WebSocket broadcast)
+└── analytics/      cross-model full-text search (no models of its own)</code></pre>
+    <h2>Dependency direction</h2>
+    <p>
+      Dependencies flow one way, matching the ownership chain from
+      <a href="../architecture/system-architecture.html">System Architecture</a>:
+      <code>accounts</code> is depended on by everything (the user FK); <code>organizations</code>
+      is depended on by <code>workflows</code> and <code>projects</code>; <code>projects</code> is
+      depended on by <code>tasks</code>; <code>tasks</code> is depended on by <code>comments</code>.
+      <code>activity</code> and <code>notifications</code> are depended <em>on</em> by every other
+      app's service layer (they're called, they don't call back), and <code>analytics</code> only
+      reads from the other apps' models — nothing depends on it.
+    </p>
+    <h2>Cross-cutting: caching</h2>
+    <p>
+      <code>apps/projects/statistics.py</code> computes project statistics (completion rate,
+      per-day histogram, overdue count, workload by member) from real aggregate queries, then
+      <code>apps/projects/caching.py</code> caches the result in Redis for 300 seconds
+      (<code>PROJECT_STATISTICS_CACHE_TTL</code>). <code>apps/tasks/signals.py</code> invalidates
+      that cache on every <code>Task</code>/<code>TaskAssignment</code> save or delete — a classic
+      cache-aside pattern, not a scheduled refresh.
+    </p>
+    <div class="diagram-svg">
+      <svg viewBox="0 0 640 160" role="img" aria-labelledby="cache-title cache-desc">
+        <title id="cache-title">Cache-aside flow for project statistics</title>
+        <desc id="cache-desc">Request checks Redis cache; on miss, computes from Postgres and populates the cache; task changes invalidate the cache key.</desc>
+        <g class="sd-node"><rect x="10" y="15" width="150" height="50" rx="10" class="sd-box sd-primary"></rect><text x="85" y="37" text-anchor="middle" class="sd-title">GET statistics/</text><text x="85" y="53" text-anchor="middle" class="sd-sub">ProjectViewSet</text></g>
+        <line x1="160" y1="40" x2="245" y2="40" class="sd-arrow"></line>
+        <g class="sd-node"><rect x="248" y="15" width="150" height="50" rx="10" class="sd-box sd-data"></rect><text x="323" y="37" text-anchor="middle" class="sd-title">Redis cache</text><text x="323" y="53" text-anchor="middle" class="sd-sub">300s TTL</text></g>
+        <line x1="398" y1="40" x2="483" y2="40" class="sd-arrow"></line>
+        <g class="sd-node"><rect x="486" y="15" width="140" height="50" rx="10" class="sd-box sd-data"></rect><text x="556" y="37" text-anchor="middle" class="sd-title">PostgreSQL</text><text x="556" y="53" text-anchor="middle" class="sd-sub">on cache miss</text></g>
+        <g class="sd-node"><rect x="248" y="95" width="150" height="50" rx="10" class="sd-box"></rect><text x="323" y="117" text-anchor="middle" class="sd-title">Task signal</text><text x="323" y="133" text-anchor="middle" class="sd-sub">post_save / post_delete</text></g>
+        <line x1="323" y1="95" x2="323" y2="70" class="sd-arrow"></line>
+        <text x="323" y="82" text-anchor="middle" class="sd-arrow-label">cache.delete()</text>
+      </svg>
+    </div>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

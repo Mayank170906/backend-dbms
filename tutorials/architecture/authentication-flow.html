@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Authentication Flow — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "architecture/authentication-flow.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Authentication <span class="accent-word">Flow</span></h1>
+      <p class="page-subtitle">Register, login, authenticated request, refresh, logout — step through the real JWT lifecycle.</p>
+    </div>
+
+
+    <p>Step through the five real stages of the JWT lifecycle, from <code>apps/accounts/api/views.py</code> and <code>SIMPLE_JWT</code> settings.</p>
+    <div class="diagram-svg" data-step-diagram data-total-steps="5" data-step-labels='["Register", "Login", "Authenticated request", "Refresh", "Logout"]'>
+      <svg viewBox="0 0 930 110" role="img" aria-labelledby="authflow-title authflow-desc">
+        <title id="authflow-title">Authentication flow</title>
+        <desc id="authflow-desc">Register, login, authenticated request, refresh, logout.</desc>
+        <g class="sd-node sd-step" data-step="1"><rect x="10" y="23.0" width="150" height="64" rx="9" class="sd-box"></rect><text x="85.0" y="51.0" text-anchor="middle" class="sd-title">1. Register</text><text x="85.0" y="69.0" text-anchor="middle" class="sd-sub">POST /api/v1/auth/register/ → RegisterView creates the User</text></g>
+        <g class="sd-step" data-step="2"><line x1="160" y1="55.0" x2="200" y2="55.0" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="2"><rect x="200" y="23.0" width="150" height="64" rx="9" class="sd-box"></rect><text x="275.0" y="51.0" text-anchor="middle" class="sd-title">2. Login</text><text x="275.0" y="69.0" text-anchor="middle" class="sd-sub">POST /api/v1/auth/login/ → TokenObtainPairView issues access + refresh</text></g>
+        <g class="sd-step" data-step="3"><line x1="350" y1="55.0" x2="390" y2="55.0" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="3"><rect x="390" y="23.0" width="150" height="64" rx="9" class="sd-box"></rect><text x="465.0" y="51.0" text-anchor="middle" class="sd-title">3. Authenticated request</text><text x="465.0" y="69.0" text-anchor="middle" class="sd-sub">Authorization: Bearer <access> checked by JWTAuthentication</text></g>
+        <g class="sd-step" data-step="4"><line x1="540" y1="55.0" x2="580" y2="55.0" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="4"><rect x="580" y="23.0" width="150" height="64" rx="9" class="sd-box"></rect><text x="655.0" y="51.0" text-anchor="middle" class="sd-title">4. Refresh</text><text x="655.0" y="69.0" text-anchor="middle" class="sd-sub">POST /api/v1/auth/login/refresh/ rotates the refresh token</text></g>
+        <g class="sd-step" data-step="5"><line x1="730" y1="55.0" x2="770" y2="55.0" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="5"><rect x="770" y="23.0" width="150" height="64" rx="9" class="sd-box"></rect><text x="845.0" y="51.0" text-anchor="middle" class="sd-title">5. Logout</text><text x="845.0" y="69.0" text-anchor="middle" class="sd-sub">POST /api/v1/auth/logout/ blacklists the submitted refresh token</text></g>
+        </svg>
+      <p class="sd-caption">Access tokens last 30 minutes; refresh tokens last 7 days and rotate on every use, with the old one blacklisted (<code>ROTATE_REFRESH_TOKENS</code> + <code>BLACKLIST_AFTER_ROTATION</code>).</p>
+    </div>
+    <div class="step-diagram-controls">
+      <button type="button" class="step-btn" data-step-prev>← Prev</button>
+      <span class="step-label">Step 1 of 5</span>
+      <button type="button" class="step-btn" data-step-next>Next →</button>
+    </div>
+
+    <h2>Token lifetimes</h2>
+    <table>
+      <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td><code>ACCESS_TOKEN_LIFETIME</code></td><td>30 minutes</td></tr>
+        <tr><td><code>REFRESH_TOKEN_LIFETIME</code></td><td>7 days</td></tr>
+        <tr><td><code>ROTATE_REFRESH_TOKENS</code></td><td><code>True</code></td></tr>
+        <tr><td><code>BLACKLIST_AFTER_ROTATION</code></td><td><code>True</code></td></tr>
+        <tr><td><code>AUTH_HEADER_TYPES</code></td><td><code>("Bearer",)</code></td></tr>
+      </tbody>
+    </table>
+    <p>
+      A daily Celery beat job (<code>cleanup_expired_tokens</code>, 03:00) runs Django's
+      <code>flushexpiredtokens</code> management command to prune the blacklist tables —
+      see <a href="../codebase/services.html">Services</a>.
+    </p>
+
+    <h2>WebSocket authentication is a separate path</h2>
+    <p>
+      A browser can't set a custom header during a WebSocket handshake, so
+      <code>ws/projects/&lt;id&gt;/</code> and <code>ws/notifications/</code>
+      connections authenticate via a <code>?token=</code> query parameter,
+      validated by the custom <code>JWTAuthMiddleware</code> in
+      <code>config/channels_auth.py</code> rather than DRF's
+      <code>JWTAuthentication</code>. See
+      <a href="../developer-notes/authentication-notes.html">Developer Notes → Authentication Notes</a>.
+    </p>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

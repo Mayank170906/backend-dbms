@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traceability Matrix — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "requirements/traceability-matrix.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Requirements <span class="accent-word">Traceability Matrix</span></h1>
+      <p class="page-subtitle">Requirement → module → file → class/function → API/DB → test, for every functional requirement.</p>
+    </div>
+
+
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Req</th><th>Module</th><th>File</th><th>Class/Function</th><th>API</th><th>Test</th></tr></thead>
+      <tbody>
+        <tr><td>FR-001</td><td>accounts</td><td>apps/accounts/api/views.py</td><td>RegisterView, LoginView, LogoutView</td><td>/auth/register/, /auth/login/, /auth/logout/</td><td>tests/test_auth_api.py</td></tr>
+        <tr><td>FR-002</td><td>organizations</td><td>apps/organizations/services.py</td><td>OrganizationService</td><td>/organizations/</td><td>tests/test_organizations_api.py</td></tr>
+        <tr><td>FR-004</td><td>projects</td><td>apps/projects/services.py</td><td>ProjectService</td><td>/projects/</td><td>tests/test_organizations_api.py, tests/test_security_idor.py</td></tr>
+        <tr><td>FR-005</td><td>tasks / comments</td><td>apps/tasks/services.py, apps/comments/services.py</td><td>TaskService, CommentService</td><td>/tasks/, /tasks/{id}/comments/</td><td>tests/test_tasks_api.py, tests/test_comments_and_mentions.py</td></tr>
+        <tr><td>FR-006</td><td>workflows</td><td>apps/workflows/services.py</td><td>WorkflowService.transition_task</td><td>/tasks/{id}/transition/</td><td>tests/test_workflow_transitions.py, tests/test_workflow_config_api.py</td></tr>
+        <tr><td>FR-007</td><td>activity</td><td>apps/activity/models.py, services.py</td><td>ActivityLog, ActivityService</td><td>/projects/{id}/activity/</td><td>tests/test_models.py, tests/test_notifications_and_activity.py</td></tr>
+        <tr><td>FR-008</td><td>notifications</td><td>apps/notifications/services.py, consumers.py</td><td>NotificationService, NotificationConsumer</td><td>/notifications/, ws/notifications/</td><td>tests/test_notifications_and_activity.py, tests/test_websocket_consumers.py</td></tr>
+        <tr><td>FR-009</td><td>analytics</td><td>apps/analytics/api/views.py</td><td>SearchView</td><td>/search/</td><td>(covered indirectly via IDOR scoping tests)</td></tr>
+        <tr><td>FR-010</td><td>projects</td><td>apps/projects/tasks.py</td><td>export_project_tasks_csv</td><td>/projects/{id}/export/</td><td>tests/test_exports.py</td></tr>
+      </tbody>
+    </table>
+    </div>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

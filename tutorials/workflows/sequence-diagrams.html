@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sequence Diagrams — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "workflows/sequence-diagrams.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Sequence <span class="accent-word">Diagrams</span></h1>
+      <p class="page-subtitle">Synchronous API call, asynchronous Celery job, and real-time WebSocket broadcast.</p>
+    </div>
+
+
+    <h2>Synchronous API call</h2>
+    <div class="diagram-svg">
+      <svg viewBox="0 0 600 170" role="img" aria-labelledby="seq1-title seq1-desc">
+        <title id="seq1-title">Synchronous request sequence</title>
+        <desc id="seq1-desc">Client to Django to service to Postgres and back, all within one request/response cycle.</desc>
+        <g class="sd-node"><rect x="10" y="20" width="130" height="46" rx="9" class="sd-box sd-primary"></rect><text x="75" y="48" text-anchor="middle" class="sd-title">Client</text></g>
+        <g class="sd-node"><rect x="180" y="20" width="130" height="46" rx="9" class="sd-box sd-primary"></rect><text x="245" y="48" text-anchor="middle" class="sd-title">Django / DRF</text></g>
+        <g class="sd-node"><rect x="350" y="20" width="130" height="46" rx="9" class="sd-box"></rect><text x="415" y="48" text-anchor="middle" class="sd-title">Service layer</text></g>
+        <g class="sd-node"><rect x="470" y="100" width="120" height="46" rx="9" class="sd-box sd-data"></rect><text x="530" y="128" text-anchor="middle" class="sd-title">PostgreSQL</text></g>
+        <line x1="140" y1="43" x2="175" y2="43" class="sd-arrow"></line>
+        <line x1="310" y1="43" x2="345" y2="43" class="sd-arrow"></line>
+        <line x1="415" y1="66" x2="470" y2="115" class="sd-arrow"></line>
+        <line x1="310" y1="60" x2="140" y2="60" class="sd-arrow"></line>
+        <text x="245" y="100" text-anchor="middle" class="sd-arrow-label">response, same request cycle</text>
+      </svg>
+    </div>
+
+    <h2>Asynchronous Celery job (project export)</h2>
+    <div class="diagram-svg">
+      <svg viewBox="0 0 640 170" role="img" aria-labelledby="seq2-title seq2-desc">
+        <title id="seq2-title">Asynchronous export job sequence</title>
+        <desc id="seq2-desc">Client requests export, gets 202 immediately, Celery worker processes it later and notifies on completion.</desc>
+        <g class="sd-node"><rect x="10" y="20" width="130" height="46" rx="9" class="sd-box sd-primary"></rect><text x="75" y="48" text-anchor="middle" class="sd-title">Client</text></g>
+        <g class="sd-node"><rect x="180" y="20" width="140" height="46" rx="9" class="sd-box sd-primary"></rect><text x="250" y="48" text-anchor="middle" class="sd-title">ProjectViewSet</text></g>
+        <g class="sd-node"><rect x="360" y="20" width="120" height="46" rx="9" class="sd-box sd-data"></rect><text x="420" y="48" text-anchor="middle" class="sd-title">Redis (broker)</text></g>
+        <g class="sd-node"><rect x="360" y="100" width="120" height="46" rx="9" class="sd-box"></rect><text x="420" y="128" text-anchor="middle" class="sd-title">Celery worker</text></g>
+        <line x1="140" y1="43" x2="175" y2="43" class="sd-arrow"></line>
+        <line x1="320" y1="43" x2="355" y2="43" class="sd-arrow"></line>
+        <text x="248" y="90" text-anchor="middle" class="sd-arrow-label">202 Accepted, immediately</text>
+        <line x1="320" y1="60" x2="140" y2="60" class="sd-arrow"></line>
+        <line x1="420" y1="66" x2="420" y2="95" class="sd-arrow"></line>
+      </svg>
+      <p class="sd-caption">The requester is notified separately (via <code>NotificationService</code>) once the worker finishes — not by holding the original HTTP request open.</p>
+    </div>
+
+    <h2>Real-time WebSocket broadcast</h2>
+    <div class="diagram-svg">
+      <svg viewBox="0 0 640 190" role="img" aria-labelledby="seq3-title seq3-desc">
+        <title id="seq3-title">WebSocket broadcast sequence</title>
+        <desc id="seq3-desc">A task change commits, on_commit fires, the channel layer fans it out to every connected member's WebSocket.</desc>
+        <g class="sd-node"><rect x="10" y="20" width="150" height="46" rx="9" class="sd-box sd-primary"></rect><text x="85" y="48" text-anchor="middle" class="sd-title">Service (commit)</text></g>
+        <g class="sd-node"><rect x="200" y="20" width="150" height="46" rx="9" class="sd-box"></rect><text x="275" y="48" text-anchor="middle" class="sd-title">transaction.on_commit</text></g>
+        <g class="sd-node"><rect x="390" y="20" width="120" height="46" rx="9" class="sd-box sd-data"></rect><text x="450" y="48" text-anchor="middle" class="sd-title">Redis channel layer</text></g>
+        <g class="sd-node"><rect x="200" y="110" width="150" height="46" rx="9" class="sd-box sd-primary"></rect><text x="275" y="138" text-anchor="middle" class="sd-title">ProjectConsumer</text></g>
+        <g class="sd-node"><rect x="10" y="110" width="150" height="46" rx="9" class="sd-box"></rect><text x="85" y="138" text-anchor="middle" class="sd-title">Browser (member)</text></g>
+        <line x1="160" y1="43" x2="195" y2="43" class="sd-arrow"></line>
+        <line x1="350" y1="43" x2="385" y2="43" class="sd-arrow"></line>
+        <path d="M450,66 L450,133 L355,133" class="sd-arrow"></path>
+        <line x1="200" y1="133" x2="165" y2="133" class="sd-arrow"></line>
+      </svg>
+      <p class="sd-caption">Broadcasting only after commit means a rolled-back change never produces a phantom live event.</p>
+    </div>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

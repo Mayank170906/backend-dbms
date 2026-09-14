@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "reference/faq.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Frequently Asked <span class="accent-word">Questions</span></h1>
+      <p class="page-subtitle">Why this choice and not the obvious alternative — the tradeoffs behind the code.</p>
+    </div>
+
+
+    <h2>Database &amp; Data Modeling</h2>
+    <details class="accordion" open>
+      <summary>Why PostgreSQL and not MySQL or SQLite?</summary>
+      <div class="accordion-body"><p>Two features this project actually uses, not just "Postgres is popular": a stored, GIN-indexed <code>SearchVectorField</code> for real full-text search, and <code>ArrayField</code> for <code>WorkflowTransition.allowed_roles</code>. Both would need either a separate search service or an extra join table on MySQL/SQLite. SQLite specifically also can't hold up under concurrent writes the way this system needs once Celery workers and the web process are writing at the same time.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why is Task.workflow_state a foreign key instead of a status string with choices?</summary>
+      <div class="accordion-body"><p>Because the spec (and any real project management tool) needs <em>administrator-defined</em> workflows — different teams genuinely run different pipelines. A hardcoded <code>choices=[...]</code> field can't do that without a code change and migration every time someone wants a new state. Modeling <code>Workflow</code>/<code>WorkflowState</code>/<code>WorkflowTransition</code> as real tables makes the pipeline itself configurable data.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why do some foreign keys use PROTECT and others SET_NULL?</summary>
+      <div class="accordion-body"><p><code>PROTECT</code> is for genuine single-owner relationships — an <code>Organization</code> or <code>Project</code> needs exactly one accountable owner, and losing that silently is a bug, not a feature. <code>SET_NULL</code> is for high-cardinality attribution fields like <code>Task.created_by</code> — blocking every user deletion because they once filed a task would make account deletion impractical in real use. The task is worth keeping even if authorship is lost.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why is Project.slug unique per-organization instead of globally?</summary>
+      <div class="accordion-body"><p>Two unrelated tenants both naming a project "backend" is normal and shouldn't collide. Project URLs are scoped under their organization anyway, so global uniqueness would be an artificial constraint serving a URL scheme this app doesn't even use.</p></div>
+    </details>
+
+    <h2>API &amp; Security</h2>
+    <details class="accordion">
+      <summary>Why does a non-member get 404 instead of 403?</summary>
+      <div class="accordion-body"><p>A 403 confirms the resource exists — that's an information leak in a multi-tenant system, since it tells an attacker "this id is a real project, you just can't see it." Scoping the queryset itself (rather than fetching-then-checking-permission) means the resource genuinely isn't there for a non-member, so a 404 is both simpler and more honest.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why JWT instead of session-based authentication?</summary>
+      <div class="accordion-body"><p>Statelessness: no server-side session store to scale or share across the <code>web</code>/<code>worker</code> processes, and no CSRF token dance for a JSON API that isn't submitted from an HTML form. The tradeoff is that a WebSocket handshake can't carry a custom <code>Authorization</code> header, so the token travels as a query parameter for that one case instead — the standard workaround for JWT-over-WebSocket.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why does the password-reset endpoint always return 200?</summary>
+      <div class="accordion-body"><p>If it returned 404 for an unregistered email, an attacker could enumerate every real account one guess at a time. An identical response either way costs a legitimate user nothing and closes that leak.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why is there both a queryset filter AND a permission class checking membership?</summary>
+      <div class="accordion-body"><p>They answer different questions. The queryset answers "does this resource exist for this caller at all" (IDOR protection — a non-member never even reaches the object). The permission class answers "given that they can see it, are they allowed to do <em>this specific write</em>" (e.g. only a Manager can update an organization's settings, even though any member can view them).</p></div>
+    </details>
+
+    <h2>Caching, Async &amp; Real-Time</h2>
+    <details class="accordion">
+      <summary>Why cache-aside instead of updating the cache on every write?</summary>
+      <div class="accordion-body"><p>Write-through would mean recomputing the (fairly expensive) statistics aggregate on <em>every</em> task edit, whether or not anyone is currently looking at that project's dashboard. Cache-aside only pays that cost when a read actually happens after something changed — which matches real usage, since dashboards are viewed far less often than tasks are edited.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why invalidate the cache with a signal instead of calling invalidate() in each service?</summary>
+      <div class="accordion-body"><p>A signal attaches the correctness property ("the cache reflects the database") to the <em>model</em>, not to a list of call sites. An explicit call in <code>TaskService.create_task</code> would work today but silently stop working the moment someone edits a task through the Django admin, a script, or a future code path nobody remembered to update.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why Celery instead of just running background work in a thread?</summary>
+      <div class="accordion-body"><p>A thread dies with the request process — if the server restarts mid-export, the work is gone with no record it ever ran. Celery gives a durable queue (Redis), a separate worker process that can scale independently of the web process, retries, and — critically for this project — a trackable <code>ProjectExport</code> row the API can hand back immediately while the real work happens elsewhere.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why is broadcasting deferred with transaction.on_commit() instead of happening immediately?</summary>
+      <div class="accordion-body"><p>Every caller of <code>ActivityService.log()</code>/<code>NotificationService.notify()</code> already runs inside <code>transaction.atomic()</code>. Broadcasting synchronously at the point of <code>.create()</code> would mean a live WebSocket event fires for a database row that might not exist a moment later, if something else in the same transaction fails and rolls it back. <code>on_commit()</code> guarantees a client only ever sees an event for a change that's actually, durably true.</p></div>
+    </details>
+
+    <h2>Architecture &amp; Process</h2>
+    <details class="accordion">
+      <summary>Why a service layer instead of putting logic in views/serializers?</summary>
+      <div class="accordion-body"><p>A rule that lives only inside a DRF view only fires when that exact HTTP endpoint is hit. The seed-data management command, a future Celery task, and the Django admin all need "assigning a task validates project membership" to hold too — putting it in <code>TaskService</code> means every one of those call sites gets it automatically, for free, forever.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why does the frontend use plain HTML/CSS/JS instead of React or a framework?</summary>
+      <div class="accordion-body"><p>The project's stated focus is backend/database engineering — the frontend exists to prove the API is actually usable end to end, not to showcase frontend framework skills. A build-free vanilla JS frontend also makes a point about the API's own quality: every page is just <code>fetch()</code> calls against the same <code>/api/v1/</code> surface any external client would use — no special access, no shortcuts through the ORM.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Why did testing catch bugs in already-shipped code?</summary>
+      <div class="accordion-body"><p>Two real examples the README documents: <code>TaskService</code>'s cross-project label validation only ran on the <em>create</em> path — <code>ModelViewSet</code>'s default <code>update()</code> calls <code>serializer.save()</code> directly and never touches the service layer, so a plain <code>PATCH</code> could bypass it entirely, until <code>TaskSerializer.validate_labels</code> was added to close that gap. The lesson generalizes: a rule enforced in only one of several possible entry points isn't really enforced; it's enforced by circumstance.</p></div>
+    </details>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

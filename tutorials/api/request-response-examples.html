@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request/Response Examples — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "api/request-response-examples.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>API: <span class="accent-word">Request/Response Examples</span></h1>
+      <p class="page-subtitle">Realistic examples built only from real serializer fields.</p>
+    </div>
+
+
+    <h2>Create a task</h2>
+    <pre><code>POST /api/v1/tasks/
+{
+  "project": 4,
+  "title": "Fix login redirect",
+  "description": "Redirects to /404 after SSO login.",
+  "priority": "high",
+  "due_date": "2026-01-15",
+  "labels": [2, 5]
+}</code></pre>
+    <pre><code>201 Created
+{
+  "id": 87,
+  "project": 4,
+  "title": "Fix login redirect",
+  "description": "Redirects to /404 after SSO login.",
+  "priority": "high",
+  "workflow_state": null,
+  "due_date": "2026-01-15",
+  "estimated_hours": null,
+  "labels": [2, 5],
+  "assignees_detail": [],
+  "created_by": 11,
+  "created_by_detail": { "id": 11, "username": "alice", "email": "alice@example.com" },
+  "created_at": "2026-01-02T10:04:11Z",
+  "updated_at": "2026-01-02T10:04:11Z"
+}</code></pre>
+
+    <h2>Transition a task</h2>
+    <pre><code>POST /api/v1/tasks/87/transition/
+{ "to_state_id": 9 }</code></pre>
+    <pre><code>200 OK
+{ "id": 87, "workflow_state": 9, ... }</code></pre>
+    <p>Rejected with <code>400</code> if state 9 isn't reachable from the task's current state via a defined <code>WorkflowTransition</code>, or <code>403</code> if the caller's project role isn't in that transition's <code>allowed_roles</code>.</p>
+
+    <h2>Request a project export</h2>
+    <pre><code>POST /api/v1/projects/4/export/</code></pre>
+    <pre><code>202 Accepted
+{
+  "id": 12,
+  "project": 4,
+  "status": "pending",
+  "file_url": null,
+  "error_message": "",
+  "created_at": "2026-01-02T10:10:00Z",
+  "completed_at": null
+}</code></pre>
+    <p>The Celery task <code>export_project_tasks_csv</code> updates this same row's <code>status</code>/<code>file</code>/<code>file_url</code> when it finishes and sends an <code>export_ready</code> notification.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

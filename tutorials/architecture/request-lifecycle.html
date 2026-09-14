@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request Lifecycle — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "architecture/request-lifecycle.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Request <span class="accent-word">Lifecycle</span></h1>
+      <p class="page-subtitle">Twelve stages, client to Postgres and back — step through it.</p>
+    </div>
+
+
+    <p>
+      Concretely, this is what happens for an authenticated write like
+      <code>POST /api/v1/tasks/&lt;id&gt;/transition/</code> — the same shape applies to
+      every endpoint, since none of these stages are per-endpoint custom code.
+      Use Next/Prev to step through it.
+    </p>
+    <div class="diagram-svg" data-step-diagram data-total-steps="12" data-step-labels='["Client", "Render / Docker container", "Daphne (ASGI server)", "Middleware stack", "URL resolver", "JWT authentication", "Object permission check", "ViewSet", "Serializer", "Service layer", "Django ORM \u2192 PostgreSQL", "Response"]'>
+      <svg viewBox="0 0 460 678" role="img" aria-labelledby="reqlife-title reqlife-desc">
+        <title id="reqlife-title">Request lifecycle</title>
+        <desc id="reqlife-desc">Twelve stages from client request to database and back, matching the real middleware and DRF configuration.</desc>
+        <g class="sd-node sd-step" data-step="1"><rect x="20" y="10" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="27.0" text-anchor="middle" class="sd-title">1. Client</text><text x="230.0" y="43.0" text-anchor="middle" class="sd-sub">Browser or API client sends an HTTP request</text></g>
+        <g class="sd-step" data-step="2"><line x1="230.0" y1="52" x2="230.0" y2="66" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="2"><rect x="20" y="66" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="83.0" text-anchor="middle" class="sd-title">2. Render / Docker container</text><text x="230.0" y="99.0" text-anchor="middle" class="sd-sub">Render routes the request into the running container</text></g>
+        <g class="sd-step" data-step="3"><line x1="230.0" y1="108" x2="230.0" y2="122" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="3"><rect x="20" y="122" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="139.0" text-anchor="middle" class="sd-title">3. Daphne (ASGI server)</text><text x="230.0" y="155.0" text-anchor="middle" class="sd-sub">config/asgi.py — same process also serves WebSocket traffic</text></g>
+        <g class="sd-step" data-step="4"><line x1="230.0" y1="164" x2="230.0" y2="178" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="4"><rect x="20" y="178" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="195.0" text-anchor="middle" class="sd-title">4. Middleware stack</text><text x="230.0" y="211.0" text-anchor="middle" class="sd-sub">Security → WhiteNoise → CORS → Session → Common → CSRF → Auth → Message → XFrame</text></g>
+        <g class="sd-step" data-step="5"><line x1="230.0" y1="220" x2="230.0" y2="234" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="5"><rect x="20" y="234" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="251.0" text-anchor="middle" class="sd-title">5. URL resolver</text><text x="230.0" y="267.0" text-anchor="middle" class="sd-sub">config/urls.py → config/api_router.py</text></g>
+        <g class="sd-step" data-step="6"><line x1="230.0" y1="276" x2="230.0" y2="290" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="6"><rect x="20" y="290" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="307.0" text-anchor="middle" class="sd-title">6. JWT authentication</text><text x="230.0" y="323.0" text-anchor="middle" class="sd-sub">rest_framework_simplejwt.authentication.JWTAuthentication</text></g>
+        <g class="sd-step" data-step="7"><line x1="230.0" y1="332" x2="230.0" y2="346" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="7"><rect x="20" y="346" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="363.0" text-anchor="middle" class="sd-title">7. Object permission check</text><text x="230.0" y="379.0" text-anchor="middle" class="sd-sub">e.g. IsProjectManager.has_object_permission</text></g>
+        <g class="sd-step" data-step="8"><line x1="230.0" y1="388" x2="230.0" y2="402" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="8"><rect x="20" y="402" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="419.0" text-anchor="middle" class="sd-title">8. ViewSet</text><text x="230.0" y="435.0" text-anchor="middle" class="sd-sub">get_queryset() scopes by membership, perform_create() delegates to a service</text></g>
+        <g class="sd-step" data-step="9"><line x1="230.0" y1="444" x2="230.0" y2="458" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="9"><rect x="20" y="458" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="475.0" text-anchor="middle" class="sd-title">9. Serializer</text><text x="230.0" y="491.0" text-anchor="middle" class="sd-sub">field validation, e.g. TaskSerializer.validate_labels</text></g>
+        <g class="sd-step" data-step="10"><line x1="230.0" y1="500" x2="230.0" y2="514" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="10"><rect x="20" y="514" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="531.0" text-anchor="middle" class="sd-title">10. Service layer</text><text x="230.0" y="547.0" text-anchor="middle" class="sd-sub">business logic inside @transaction.atomic</text></g>
+        <g class="sd-step" data-step="11"><line x1="230.0" y1="556" x2="230.0" y2="570" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="11"><rect x="20" y="570" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="587.0" text-anchor="middle" class="sd-title">11. Django ORM → PostgreSQL</text><text x="230.0" y="603.0" text-anchor="middle" class="sd-sub">the actual read/write</text></g>
+        <g class="sd-step" data-step="12"><line x1="230.0" y1="612" x2="230.0" y2="626" class="sd-arrow"></line></g>
+        <g class="sd-node sd-step" data-step="12"><rect x="20" y="626" width="420" height="42" rx="9" class="sd-box"></rect><text x="230.0" y="643.0" text-anchor="middle" class="sd-title">12. Response</text><text x="230.0" y="659.0" text-anchor="middle" class="sd-sub">serialized JSON travels back up the same stack</text></g>
+        </svg>
+      <p class="sd-caption">Middleware order is exactly as declared in <code>config/settings/base.py</code>'s <code>MIDDLEWARE</code> list — see <a href="../codebase/configuration.html">Codebase → Configuration</a>.</p>
+    </div>
+    <div class="step-diagram-controls">
+      <button type="button" class="step-btn" data-step-prev>← Prev</button>
+      <span class="step-label">Step 1 of 12</span>
+      <button type="button" class="step-btn" data-step-next>Next →</button>
+    </div>
+
+    <h2>Why no custom middleware</h2>
+    <p>
+      There is no project-authored Django HTTP middleware — the stack is
+      entirely stock Django + third-party packages
+      (<code>SecurityMiddleware</code>, <code>WhiteNoiseMiddleware</code>,
+      <code>CorsMiddleware</code>, <code>SessionMiddleware</code>,
+      <code>CommonMiddleware</code>, <code>CsrfViewMiddleware</code>,
+      <code>AuthenticationMiddleware</code>, <code>MessageMiddleware</code>,
+      <code>XFrameOptionsMiddleware</code>). Everything project-specific
+      happens further down the stack, in DRF authentication/permission
+      classes and the service layer — see <a href="../codebase/middleware.html">Codebase → Middleware</a>.
+    </p>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

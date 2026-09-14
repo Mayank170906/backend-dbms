@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Flow — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "architecture/data-flow.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Architecture: <span class="accent-word">Data Flow</span></h1>
+      <p class="page-subtitle">How a single write moves from an HTTP body to a database row, using task creation as the running example.</p>
+    </div>
+
+
+    <p>Every write endpoint follows the same shape. Concretely, for <code>POST /api/v1/tasks/</code>:</p>
+    <div class="diagram">
+      <div class="box-row">
+        <div class="box">Request body<span class="sub">JSON</span></div>
+      </div>
+      <div class="arrow-down">↓</div>
+      <div class="box-row">
+        <div class="box primary">TaskSerializer<span class="sub">field validation, validate_labels()</span></div>
+      </div>
+      <div class="arrow-down">↓</div>
+      <div class="box-row">
+        <div class="box">TaskViewSet.perform_create<span class="sub">apps/tasks/api/views.py</span></div>
+      </div>
+      <div class="arrow-down">↓</div>
+      <div class="box-row">
+        <div class="box primary">TaskService.create_task<span class="sub">@transaction.atomic</span></div>
+      </div>
+      <div class="arrow-down">↓</div>
+      <div class="box-row">
+        <div class="box">Task.objects.create()<span class="sub">Django ORM</span></div>
+        <div class="box">ActivityService.log()<span class="sub">same transaction</span></div>
+      </div>
+      <div class="arrow-down">↓</div>
+      <div class="box-row">
+        <div class="box primary">PostgreSQL<span class="sub">tasks_task, activity_activitylog rows committed together</span></div>
+      </div>
+      <div class="arrow-down">↓</div>
+      <div class="box-row">
+        <div class="box">TaskSerializer (response)<span class="sub">201 Created</span></div>
+      </div>
+    </div>
+    <p>
+      Two details matter here and recur throughout the codebase:
+    </p>
+    <ul>
+      <li><strong>Validation happens before any write.</strong> <code>TaskSerializer.validate_labels</code> rejects labels belonging to a different project than the task before <code>TaskService.create_task</code> is ever called.</li>
+      <li><strong>The write and its audit trail are one transaction.</strong> If <code>ActivityService.log()</code> raised, the <code>Task</code> row would roll back too — verified directly by <code>tests/test_transactions.py</code>, which monkeypatches a failure partway through to prove the rollback actually happens rather than just assuming <code>@transaction.atomic</code> is doing its job.</li>
+    </ul>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

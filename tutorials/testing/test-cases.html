@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Cases — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "testing/test-cases.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Test <span class="accent-word">Cases</span></h1>
+      <p class="page-subtitle">All 17 test files, and what each one actually verifies.</p>
+    </div>
+
+
+    <table>
+      <thead><tr><th>File</th><th>Covers</th></tr></thead>
+      <tbody>
+        <tr><td>test_models.py</td><td>Membership uniqueness, owner PROTECT on delete, per-org slug uniqueness, SET_NULL on user delete, ActivityLog immutability (no update, no delete)</td></tr>
+        <tr><td>test_auth_api.py</td><td>Register, login, wrong password rejected, logout blacklists refresh, unauthenticated request rejected, password-reset doesn't reveal account existence</td></tr>
+        <tr><td>test_organizations_api.py</td><td>Org creation ownership, non-member gets 404 not 403, member list scoping, viewer can't update, admin can add members, pagination shape</td></tr>
+        <tr><td>test_tasks_api.py</td><td>Create/list, filter by priority, full-text search, ordering, assign rejects non-member, workflow_state read-only, project immutable after creation, cross-project label rejected on PATCH</td></tr>
+        <tr><td>test_workflow_transitions.py</td><td>Enter-at-non-initial rejected, enter-at-initial allowed, skip-state rejected, role-gated transition denied/allowed, non-member rejected, cross-workflow target rejected</td></tr>
+        <tr><td>test_security_idor.py</td><td>Cross-tenant project/task/activity/statistics/comment access rejected, incrementing IDs doesn't leak, notifications scoped to recipient, search scoped to caller</td></tr>
+        <tr><td>test_transactions.py</td><td>Org creation rollback on membership-insert failure, task creation rollback on activity-log failure, task assignment rollback on notification failure (monkeypatch-induced failures)</td></tr>
+        <tr><td>test_notifications_and_activity.py</td><td>Mark single/all-read, project activity feed paginated/ordered</td></tr>
+        <tr><td>test_performance.py</td><td>Task list query count doesn't scale with row count (fixed query budget)</td></tr>
+        <tr><td>test_statistics.py</td><td>Stats without workflow, second call is a cache hit, invalidation after task change, overdue counting, completion metrics, workload by member</td></tr>
+        <tr><td>test_workflow_config_api.py</td><td>Create workflow via API, add state+transition via API, reject unknown role, list scoped by org query param, non-member can't author states</td></tr>
+        <tr><td>test_websocket_consumers.py</td><td>Non-member WS connection rejected, anonymous WS connection rejected, member receives a live activity event on task creation</td></tr>
+        <tr><td>test_exports.py</td><td>Export endpoint returns immediately then completes, export-ready notification sent, exports list scoped to project membership</td></tr>
+        <tr><td>test_comments_and_mentions.py</td><td>Mention notifies project member, no notification for non-member/nonexistent username, no self-mention notification, non-member can't comment</td></tr>
+        <tr><td>test_periodic_tasks.py</td><td>Due-tomorrow notifies correct assignees only, skips terminal tasks, daily reports notify active project owners, skips archived projects, token cleanup runs without error</td></tr>
+        <tr><td>test_seed_data.py</td><td>Seed command creates realistic cross-model data, <code>--clear</code> deletes and reseeds</td></tr>
+        <tr><td>conftest.py</td><td>Shared fixtures only — no tests</td></tr>
+      </tbody>
+    </table>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

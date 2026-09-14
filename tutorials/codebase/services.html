@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Services — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/services.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">Services</span></h1>
+      <p class="page-subtitle">Every service class and method — the layer that owns all business logic.</p>
+    </div>
+
+
+<p>Every write path in the app goes through a <code>services.py</code> class method, never directly through a view or a raw <code>.objects.create()</code> in a viewset. This is the project's single most important architectural rule — see <a href="../reference/adrs.html">ADRs</a> for why.</p>
+
+<details class="accordion" open>
+<summary>organizations</summary>
+<div class="accordion-body">
+<ul>
+<li><code>OrganizationService.create_organization(*, owner, name, description="")</code> — atomic; creates the org and an OWNER membership.</li>
+<li><code>OrganizationService.add_member(*, organization, user, role=MEMBER)</code> — atomic upsert.</li>
+<li><code>TeamService.create_team(*, organization, name, description="")</code>.</li>
+<li><code>TeamService.add_member(*, team, user)</code> — get_or_create.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>projects</summary>
+<div class="accordion-body">
+<ul>
+<li><code>ProjectService.create_project(*, organization, owner, name, description="")</code> — atomic; creates the project and a MANAGER membership for the owner.</li>
+<li><code>ProjectService.add_member(*, project, user, actor, role=DEVELOPER)</code> — atomic upsert; logs activity, notifies on creation.</li>
+<li><code>caching.py</code>: <code>project_statistics_cache_key(*, project_id)</code>, <code>invalidate_project_statistics(*, project_id)</code>.</li>
+<li><code>statistics.py</code>: <code>get_project_statistics(*, project)</code> — cache-aside wrapper around <code>_compute_project_statistics</code> and <code>_completion_metrics</code>.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>tasks</summary>
+<div class="accordion-body">
+<ul>
+<li><code>TaskService.create_task(*, project, created_by, title, description="", priority=MEDIUM, due_date=None, estimated_hours=None)</code> — atomic; also logs activity.</li>
+<li><code>TaskService.assign(*, task, user, actor)</code> — atomic; logs activity, notifies the assignee.</li>
+<li><code>TaskService.add_label(*, task, label)</code> — enforces the cross-project label guard.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>comments</summary>
+<div class="accordion-body">
+<ul>
+<li><code>CommentService.add_comment(*, task, author, body)</code> — atomic; membership check, logs activity, triggers mention notifications.</li>
+<li><code>CommentService._notify_mentions(*, comment, task, author)</code> — parses <code>@username</code> via regex, notifies only mentioned users who are actual project members.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>workflows</summary>
+<div class="accordion-body">
+<ul>
+<li><code>WorkflowService.create_workflow(*, organization, name, description="", actor=None)</code>.</li>
+<li><code>WorkflowService.add_state(*, workflow, name, order, is_initial=False, is_terminal=False, actor=None)</code>.</li>
+<li><code>WorkflowService.add_transition(*, workflow, from_state, to_state, allowed_roles, actor=None)</code> — validates roles against <code>ProjectMembership.Role</code>.</li>
+<li><code>WorkflowService.transition_task(*, task, to_state, user)</code> — the sole authority for task state transitions: checks membership, transition existence, and role gating, then logs activity and notifies other assignees.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>activity</summary>
+<div class="accordion-body">
+<p><code>ActivityService.log(*, actor, action, target, organization, project=None, metadata=None)</code> — creates the audit row; if <code>project</code> is given, broadcasts via <code>transaction.on_commit()</code> to <code>broadcast_activity_event</code>.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>notifications</summary>
+<div class="accordion-body">
+<ul>
+<li><code>NotificationService.notify(*, recipient, notification_type, message, target=None)</code> — creates the row, broadcasts via <code>on_commit()</code>.</li>
+<li><code>NotificationService.mark_read(*, notification)</code> / <code>mark_all_read(*, user)</code>.</li>
+</ul>
+</div>
+</details>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

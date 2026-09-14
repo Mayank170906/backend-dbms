@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuration — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/configuration.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">Configuration</span></h1>
+      <p class="page-subtitle">How config/settings/{base,development,production}.py fit together.</p>
+    </div>
+
+
+    <p>Settings are a package, not a single file, imported as <code>from .base import *</code> in both <code>development.py</code> and <code>production.py</code> — never edited independently for each environment.</p>
+
+    <h2>base.py</h2>
+    <ul>
+      <li><code>SECRET_KEY = os.environ.get("SECRET_KEY", "")</code> — no hardcoded fallback here (only in development).</li>
+      <li>Two small helpers, <code>env_bool()</code> and <code>env_list()</code>, parse boolean/comma-separated env vars consistently — see <a href="../codebase/utilities.html">Utilities</a>.</li>
+      <li><code>.env</code> is loaded via <code>python-dotenv</code>'s <code>load_dotenv()</code> at import time, without overriding real environment variables that are already set.</li>
+      <li><code>DATABASES</code> comes entirely from <code>dj_database_url.config(env="DATABASE_URL", conn_max_age=600, conn_health_checks=True)</code> — one variable, one source of truth.</li>
+      <li><code>ASGI_APPS = ["daphne"]</code> is listed first in <code>INSTALLED_APPS</code>, ahead of <code>django.contrib.staticfiles</code>, specifically so Channels can override <code>runserver</code> to also handle WebSocket connections in development.</li>
+      <li><code>STORAGES["staticfiles"]</code> is <code>whitenoise.storage.CompressedManifestStaticFilesStorage</code> — content-hashed, pre-compressed static files.</li>
+      <li>JWT (<code>SIMPLE_JWT</code>), DRF (<code>REST_FRAMEWORK</code>), Celery (<code>CELERY_*</code> + <code>CELERY_BEAT_SCHEDULE</code>), cache (<code>CACHES</code>), and Channels (<code>CHANNEL_LAYERS</code>) are all fully configured here — see <a href="../api/overview.html">API Overview</a>, <a href="../deployment/environment-variables.html">Environment Variables</a>, and <a href="../codebase/services.html">Services</a> respectively.</li>
+      <li><code>LOGGING</code> is a single console <code>StreamHandler</code> at a level from <code>DJANGO_LOG_LEVEL</code> (default <code>INFO</code>) — there are no file handlers or per-app loggers.</li>
+    </ul>
+
+    <h2>development.py</h2>
+    <ul>
+      <li><code>DEBUG = True</code>.</li>
+      <li><code>SECRET_KEY</code> falls back to a hardcoded, clearly-named insecure value if the env var is unset — a convenience meant only for a laptop, never anywhere reachable over a network.</li>
+      <li><code>CORS_ALLOW_ALL_ORIGINS = True</code> — acceptable because dev never serves real user data.</li>
+    </ul>
+
+    <h2>production.py</h2>
+    <ul>
+      <li><strong>Raises <code>RuntimeError</code> at import time</strong> if <code>SECRET_KEY</code>, <code>ALLOWED_HOSTS</code>, or <code>DATABASE_URL</code> is unset or empty — the app refuses to even start misconfigured in production, rather than starting insecurely.</li>
+      <li><code>DEBUG = False</code>, JSON-only DRF renderer (browsable API disabled), <code>CORS_ALLOW_ALL_ORIGINS = False</code>.</li>
+      <li>Forces <code>SECURE_SSL_REDIRECT</code> (default <code>True</code>), <code>SESSION_COOKIE_SECURE</code>, <code>CSRF_COOKIE_SECURE</code>, <code>CSRF_COOKIE_HTTPONLY</code>, <code>SECURE_HSTS_SECONDS</code> (default one year) with subdomains + preload, <code>SECURE_CONTENT_TYPE_NOSNIFF</code>, <code>X_FRAME_OPTIONS = "DENY"</code>, and reads <code>SECURE_PROXY_SSL_HEADER</code> so Django trusts Render's <code>X-Forwarded-Proto</code>.</li>
+      <li><code>CSRF_TRUSTED_ORIGINS</code> comes from its own env var — nothing is trusted by default.</li>
+    </ul>
+    <p>Full production security posture is on <a href="../deployment/production-configuration.html">Deployment → Production Configuration</a>.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Current Implementation Status — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "overview/current-status.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Current <span class="accent-word">Implementation Status</span></h1>
+      <p class="page-subtitle">What's actually running in production versus configured-but-not-provisioned. Nothing here is aspirational.</p>
+    </div>
+
+
+    <p>
+      This page exists specifically to prevent the rest of the documentation
+      from being read as marketing copy. A setting existing in
+      <code>config/settings/base.py</code> does not mean the corresponding
+      infrastructure is deployed — see the Redis/Celery/Channels row below.
+    </p>
+
+    <table>
+      <thead><tr><th>Subsystem</th><th>Status</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td>Core Django app (accounts/orgs/projects/tasks/workflows/comments)</td><td><span class="badge">Implemented</span></td><td>Full models, serializers, views, services, tests for all 9 apps.</td></tr>
+        <tr><td>JWT authentication</td><td><span class="badge">Implemented</span></td><td><code>djangorestframework-simplejwt</code>, rotation + blacklist, covered by <code>tests/test_auth_api.py</code>.</td></tr>
+        <tr><td>Postgres full-text search</td><td><span class="badge">Implemented</span></td><td><code>SearchVectorField</code>/<code>GinIndex</code> on Project/Task/Comment, real <code>SearchView</code>.</td></tr>
+        <tr><td>Service-layer business logic</td><td><span class="badge">Implemented</span></td><td>Every write path goes through <code>services.py</code>, wrapped in <code>@transaction.atomic</code>.</td></tr>
+        <tr><td>Test suite</td><td><span class="badge">Implemented</span></td><td>17 test files under <code>tests/</code>; README reports 78 tests, ~90% coverage (a project-reported figure — see <a href="../testing/coverage.html">Coverage</a>).</td></tr>
+        <tr><td>Docker image / Render deployment</td><td><span class="badge">Implemented</span></td><td>Live at <a href="https://backend-dbms-p4su.onrender.com/">backend-dbms-p4su.onrender.com</a>, built from the repo's <code>Dockerfile</code>.</td></tr>
+        <tr><td>Supabase PostgreSQL in production</td><td><span class="badge">Implemented</span></td><td><code>DATABASE_URL</code>-driven, see <a href="../deployment/supabase.html">Supabase</a>.</td></tr>
+        <tr><td>Redis (cache / Celery broker / Channels layer)</td><td><span class="badge">Configured, requires infrastructure</span></td><td>Settings default to <code>redis://localhost:6379/*</code>; a real Redis service must be provisioned wherever this is deployed for caching, Celery, and WebSockets to function — it is not automatically part of a Render web-service deployment. See <a href="../deployment/render.html">Deployment → Render</a>.</td></tr>
+        <tr><td>Celery worker &amp; beat (async email/export/report/cleanup jobs)</td><td><span class="badge">Configured, requires infrastructure</span></td><td>Real tasks and a <code>CELERY_BEAT_SCHEDULE</code> exist and run under <code>docker-compose.yml</code>/<code>docker-compose.prod.yml</code>'s <code>worker</code>/<code>beat</code> services, but depend on the same Redis provisioning above.</td></tr>
+        <tr><td>Django Channels / WebSockets</td><td><span class="badge">Configured, requires infrastructure</span></td><td>Consumers and JWT WS auth are fully implemented and tested (<code>tests/test_websocket_consumers.py</code>), but the Channels layer needs the same Redis dependency.</td></tr>
+        <tr><td>CI (automated test runs on push)</td><td><span class="badge">Not implemented</span></td><td>The only workflow in <code>.github/workflows/</code> deploys the <code>tutorials/</code> site to GitHub Pages — nothing runs <code>pytest</code> automatically. Documented as a known gap in the README's "Future Improvements" section.</td></tr>
+        <tr><td>Object storage for media/exports</td><td><span class="badge">Not implemented</span></td><td>Uploads (<code>User.avatar</code>, <code>ProjectExport.file</code>) are written to the container's local filesystem (<code>MEDIA_ROOT</code>), not a persistent object store.</td></tr>
+        <tr><td>Sprints / iteration planning</td><td><span class="badge">Not implemented</span></td><td>No <code>Sprint</code> model or app exists; listed in the README as a deferred feature.</td></tr>
+      </tbody>
+    </table>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

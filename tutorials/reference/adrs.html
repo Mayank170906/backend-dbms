@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADRs — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "reference/adrs.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Architecture Decision <span class="accent-word">Records</span></h1>
+      <p class="page-subtitle">Meaningful architectural decisions, each with context, reasoning, alternatives, and current status.</p>
+    </div>
+
+
+    <details class="accordion" open>
+      <summary>ADR-001 — Django + Django REST Framework</summary>
+      <div class="accordion-body">
+        <p><strong>Context:</strong> need a batteries-included framework with a mature ORM, admin, and auth for a project management platform.</p>
+        <p><strong>Decision:</strong> Django + DRF for the entire backend.</p>
+        <p><strong>Reason:</strong> ORM + migrations + admin out of the box; DRF adds serializers/viewsets/permissions/pagination without reinventing them.</p>
+        <p><strong>Alternatives considered:</strong> Flask/FastAPI + a separate ORM — more assembly required for equivalent features.</p>
+        <p><strong>Consequences:</strong> tied to Django's request/response and ORM conventions throughout. <strong>Status:</strong> Accepted, implemented.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>ADR-002 — PostgreSQL over MySQL/SQLite</summary>
+      <div class="accordion-body">
+        <p><strong>Context:</strong> need full-text search and a small unordered set field without extra join tables.</p>
+        <p><strong>Decision:</strong> PostgreSQL as the only supported database.</p>
+        <p><strong>Reason:</strong> <code>SearchVectorField</code>/<code>GinIndex</code> and <code>ArrayField</code> are used directly by real models.</p>
+        <p><strong>Alternatives considered:</strong> MySQL (no native full-text-search-as-good, no ArrayField), SQLite (concurrency limits under multi-process writes).</p>
+        <p><strong>Consequences:</strong> not database-agnostic by design. <strong>Status:</strong> Accepted, implemented.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>ADR-003 — JWT over session-based authentication</summary>
+      <div class="accordion-body">
+        <p><strong>Context:</strong> a JSON API consumed by a JS frontend and, potentially, external clients.</p>
+        <p><strong>Decision:</strong> <code>djangorestframework-simplejwt</code> with access+refresh tokens, no server-side session store for the API.</p>
+        <p><strong>Reason:</strong> statelessness across the <code>web</code>/<code>worker</code> processes, no CSRF dance for non-form requests.</p>
+        <p><strong>Alternatives considered:</strong> Django session auth — would need shared session storage and CSRF handling for a pure-JSON API.</p>
+        <p><strong>Consequences:</strong> WebSocket auth needs a separate token-in-query-string path. <strong>Status:</strong> Accepted, implemented.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>ADR-004 — A per-app service layer</summary>
+      <div class="accordion-body">
+        <p><strong>Context:</strong> business rules (membership checks, transaction boundaries, audit logging) must hold no matter which code path triggers them (API, management command, future task).</p>
+        <p><strong>Decision:</strong> every app's write logic lives in a <code>services.py</code>, never directly in a view/serializer.</p>
+        <p><strong>Reason:</strong> a rule in a view only fires for that exact endpoint; a rule in a service fires for every caller.</p>
+        <p><strong>Alternatives considered:</strong> "fat models" (business logic as model methods) — harder to compose transactions spanning multiple models.</p>
+        <p><strong>Consequences:</strong> more indirection for simple CRUD, real payoff for anything with side effects. <strong>Status:</strong> Accepted, implemented consistently.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>ADR-005 — Docker + uv for dependency management</summary>
+      <div class="accordion-body">
+        <p><strong>Context:</strong> need reproducible builds and a single deployable artifact.</p>
+        <p><strong>Decision:</strong> <code>uv</code> + <code>pyproject.toml</code>/<code>uv.lock</code>, packaged into one Docker image used for <code>web</code>/<code>worker</code>/<code>beat</code>.</p>
+        <p><strong>Reason:</strong> exact pinned dependency resolution; one image, three roles, differing only by container command.</p>
+        <p><strong>Alternatives considered:</strong> plain pip + requirements.txt — weaker lock-file guarantees.</p>
+        <p><strong>Consequences:</strong> adds a build-time-only dependency-install layer distinct from the runtime image. <strong>Status:</strong> Accepted, implemented.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>ADR-006 — Render + Supabase for hosting</summary>
+      <div class="accordion-body">
+        <p><strong>Context:</strong> need a hosted, low-maintenance production target.</p>
+        <p><strong>Decision:</strong> Render runs the Docker image; Supabase hosts PostgreSQL, connected via <code>DATABASE_URL</code>.</p>
+        <p><strong>Reason:</strong> avoids self-managing a database server; Render's Docker-native deploy matches the project's existing containerization.</p>
+        <p><strong>Alternatives considered:</strong> self-hosted Postgres on the same host as the app — couples app and database lifecycle unnecessarily.</p>
+        <p><strong>Consequences:</strong> Redis/Celery/Channels need separate provisioning if used in this environment — see <a href="../overview/current-status.html">Current Status</a>. <strong>Status:</strong> Accepted, implemented (web service only).</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>ADR-007 — One Redis instance, four logical databases</summary>
+      <div class="accordion-body">
+        <p><strong>Context:</strong> cache, Celery broker, Celery result backend, and the Channels layer each need a Redis-backed store.</p>
+        <p><strong>Decision:</strong> one Redis server, four separate numbered DB indexes (0/1/2/3).</p>
+        <p><strong>Reason:</strong> a development-time <code>FLUSHDB</code> on one logical store can't wipe the others; avoids running four separate Redis processes.</p>
+        <p><strong>Alternatives considered:</strong> a dedicated Redis instance per concern — more operational overhead for a project this size.</p>
+        <p><strong>Consequences:</strong> all four still share one physical instance's memory/availability. <strong>Status:</strong> Accepted, implemented.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>ADR-008 — ASGI/Daphne to serve both HTTP and WebSocket</summary>
+      <div class="accordion-body">
+        <p><strong>Context:</strong> the app needs both a JSON REST API and real-time WebSocket feeds.</p>
+        <p><strong>Decision:</strong> one ASGI application (<code>config/asgi.py</code>), served by Daphne, routes both protocols.</p>
+        <p><strong>Reason:</strong> Django Channels requires ASGI; running one process for both protocols is simpler to deploy than a separate WebSocket server.</p>
+        <p><strong>Alternatives considered:</strong> WSGI + a separate WebSocket service — two deployable units instead of one.</p>
+        <p><strong>Consequences:</strong> the whole app is ASGI-based even where a request is plain synchronous HTTP. <strong>Status:</strong> Accepted, implemented.</p>
+      </div>
+    </details>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

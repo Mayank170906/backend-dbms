@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Views — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/views.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">Views</span></h1>
+      <p class="page-subtitle">Every view/viewset class, its base class, and its custom actions.</p>
+    </div>
+
+
+<p>All authentication relies on DRF's global default (<code>JWTAuthentication</code>) — no view sets <code>authentication_classes</code> individually.</p>
+
+<details class="accordion" open>
+<summary>accounts</summary>
+<div class="accordion-body">
+<ul>
+<li><code>RegisterView(generics.CreateAPIView)</code> — AllowAny, throttle scope "auth".</li>
+<li><code>LoginView(TokenObtainPairView)</code> — AllowAny, throttle scope "auth".</li>
+<li><code>LogoutView(APIView)</code> — IsAuthenticated; blacklists the submitted refresh token.</li>
+<li><code>MeView(generics.RetrieveAPIView)</code> — IsAuthenticated; <code>get_object()</code> returns <code>request.user</code>.</li>
+<li><code>UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet)</code> — IsAuthenticated; <code>SearchFilter</code> on username/email.</li>
+<li><code>PasswordResetRequestView</code> / <code>PasswordResetConfirmView(APIView)</code> — AllowAny, throttle "auth"; the request view always returns 200 regardless of whether the account exists.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>organizations</summary>
+<div class="accordion-body">
+<ul>
+<li><code>OrganizationViewSet(ModelViewSet)</code> — permissions <code>[IsAuthenticated, IsOrganizationAdmin]</code>; queryset filtered to <code>memberships__user=request.user</code>; <code>perform_create</code> → <code>OrganizationService.create_organization</code>; <code>@action(detail=True, methods=["get","post"], url_path="members")</code>.</li>
+<li><code>TeamViewSet(ModelViewSet)</code> — IsAuthenticated; <code>filterset_fields=["organization"]</code>; scoped to the caller's orgs; <code>perform_create</code> checks membership then calls <code>TeamService.create_team</code>.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>projects</summary>
+<div class="accordion-body">
+<p><code>ProjectViewSet(ModelViewSet)</code> — permissions <code>[IsAuthenticated, IsProjectManager]</code>; <code>filterset_fields=["organization","status"]</code>; queryset scoped by <code>memberships__user</code>; <code>perform_create</code> → <code>ProjectService.create_project</code>. Custom actions: <code>members</code> (GET/POST), <code>activity</code> (GET), <code>statistics</code> (GET), <code>export</code> (POST, 202 + Celery task), <code>exports</code> (GET).</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>tasks</summary>
+<div class="accordion-body">
+<ul>
+<li><code>TaskViewSet(ModelViewSet)</code> — IsAuthenticated; custom <code>TaskFilter</code>; <code>search_fields=["title","description"]</code>; queryset scoped by <code>project__memberships__user</code> with <code>select_related</code>/<code>prefetch_related</code> to avoid N+1. Actions: <code>assign</code>, <code>transition</code>, <code>comments</code> (GET/POST).</li>
+<li><code>LabelViewSet(ModelViewSet)</code> — IsAuthenticated; <code>filterset_fields=["project"]</code>; scoped by project membership.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>workflows</summary>
+<div class="accordion-body">
+<p><code>WorkflowViewSet(ModelViewSet)</code> — IsAuthenticated; <code>filterset_fields=["organization"]</code>; scoped by org membership. Actions: <code>add_state</code> (POST <code>states/</code>), <code>add_transition</code> (POST <code>transitions/</code>).</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>notifications</summary>
+<div class="accordion-body">
+<p><code>NotificationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet)</code> — IsAuthenticated; queryset filtered to <code>recipient=request.user</code>. Actions: <code>mark_read</code> (detail POST), <code>mark_all_read</code> (list-level POST, <code>url_path="read-all"</code>).</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>analytics</summary>
+<div class="accordion-body">
+<p><code>SearchView(APIView)</code> — IsAuthenticated; <code>GET /?q=</code> runs <code>SearchQuery</code>/<code>SearchRank</code> across Project/Task/Comment, each scoped to caller's org/project membership, capped at 20 results each, ordered by rank.</p>
+</div>
+</details>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

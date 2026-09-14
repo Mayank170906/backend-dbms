@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DRF Concepts — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "developer-notes/drf-concepts.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Developer Notes: <span class="accent-word">DRF Concepts</span></h1>
+      <p class="page-subtitle">Serializers, ViewSets, routers, permissions — taught with TaskViewSet and friends.</p>
+    </div>
+
+
+    <h2>Serializers validate, they don't decide business rules</h2>
+    <p><code>TaskSerializer.validate_labels</code> checks a structural invariant (a label must belong to the same project as the task) — a shape/consistency rule, not a business decision. The actual decision of "is this task allowed to move to this state" lives in <code>WorkflowService.transition_task</code>, not in a serializer. Keeping that line clear is why the service layer exists.</p>
+    <h2>ViewSets vs. plain APIViews</h2>
+    <p>Anything with real CRUD (<code>TaskViewSet</code>, <code>ProjectViewSet</code>, …) is a <code>ModelViewSet</code>, registered on the router. Anything that isn't resource CRUD — <code>LoginView</code>, <code>SearchView</code>, <code>LogoutView</code> — is a plain <code>APIView</code> or a SimpleJWT view, wired into <code>urls.py</code> directly rather than forced onto a router it doesn't fit.</p>
+    <h2>get_queryset() is the security boundary, not get_object()</h2>
+    <p>Every viewset overrides <code>get_queryset()</code> to filter by the caller's membership <em>before</em> DRF ever looks up a specific object. That's what makes a non-member's request 404 rather than 403 — the object was never reachable to begin with. See <a href="../codebase/permissions.html">Codebase → Permissions</a>.</p>
+    <h2>Composing mixins instead of inheriting a big class</h2>
+    <p><code>NotificationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet)</code> picks exactly the two operations notifications support (list, retrieve) instead of inheriting a full <code>ModelViewSet</code> and disabling the rest.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

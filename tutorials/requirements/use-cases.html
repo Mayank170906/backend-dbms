@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Use Cases — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "requirements/use-cases.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Requirements: <span class="accent-word">Use Cases</span></h1>
+      <p class="page-subtitle">The system's major use cases, each mapped to the real service method that implements it.</p>
+    </div>
+
+
+    <details class="accordion" open>
+      <summary>UC-01 — Register and log in</summary>
+      <div class="accordion-body">
+        <p><strong>Actor:</strong> Anonymous visitor. <strong>Precondition:</strong> none. <strong>Main flow:</strong> POST <code>register/</code> creates a <code>User</code>; POST <code>login/</code> returns an access+refresh token pair. <strong>Exception:</strong> duplicate email/username → 400. <strong>Postcondition:</strong> caller holds a valid JWT. <strong>Implementation:</strong> <code>RegisterView</code>, <code>LoginView</code>.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>UC-02 — Create an organization</summary>
+      <div class="accordion-body">
+        <p><strong>Actor:</strong> Any authenticated user. <strong>Main flow:</strong> POST <code>organizations/</code> creates the org and an OWNER membership for the caller. <strong>Implementation:</strong> <code>OrganizationService.create_organization</code>.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>UC-03 — Create a project</summary>
+      <div class="accordion-body">
+        <p><strong>Actor:</strong> Organization member. <strong>Precondition:</strong> caller is a member of the target organization. <strong>Main flow:</strong> POST <code>projects/</code> creates the project and a MANAGER membership for the caller. <strong>Exception:</strong> non-member → 403 (checked before creation). <strong>Implementation:</strong> <code>ProjectService.create_project</code>.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>UC-04 — Configure a workflow</summary>
+      <div class="accordion-body">
+        <p><strong>Actor:</strong> Organization member. <strong>Main flow:</strong> create a <code>Workflow</code>, add ordered <code>WorkflowState</code>s, add role-gated <code>WorkflowTransition</code>s between them. <strong>Exception:</strong> an unknown role in <code>allowed_roles</code> → rejected. <strong>Implementation:</strong> <code>WorkflowService.create_workflow/add_state/add_transition</code>.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>UC-05 — Create, assign, and transition a task</summary>
+      <div class="accordion-body">
+        <p><strong>Actor:</strong> Project member. <strong>Main flow:</strong> create the task; assign a project member; transition it along a defined <code>WorkflowTransition</code> the caller's role is permitted to use. <strong>Exception:</strong> transitioning to a non-adjacent state, or with an insufficient role → rejected. <strong>Postcondition:</strong> an <code>ActivityLog</code> row and a <code>Notification</code> exist. <strong>Implementation:</strong> <code>TaskService.create_task/assign</code>, <code>WorkflowService.transition_task</code>.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>UC-06 — Comment and mention</summary>
+      <div class="accordion-body">
+        <p><strong>Actor:</strong> Project member. <strong>Main flow:</strong> POST a comment on a task; any <code>@username</code> mention of an actual project member triggers a notification. <strong>Exception:</strong> mentioning a non-member or nonexistent username → no notification sent; mentioning yourself → no notification. <strong>Implementation:</strong> <code>CommentService.add_comment/_notify_mentions</code>.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>UC-07 — Export a project's tasks</summary>
+      <div class="accordion-body">
+        <p><strong>Actor:</strong> Project manager. <strong>Main flow:</strong> POST <code>{id}/export/</code> immediately returns 202 with a <code>ProjectExport</code> row; a Celery task generates the CSV and notifies the requester when done. <strong>Implementation:</strong> <code>export_project_tasks_csv</code>.</p>
+      </div>
+    </details>
+    <details class="accordion">
+      <summary>UC-08 — Search across projects, tasks, and comments</summary>
+      <div class="accordion-body">
+        <p><strong>Actor:</strong> Any authenticated user. <strong>Main flow:</strong> GET <code>search/?q=</code> returns ranked matches from all three models, each pre-filtered to the caller's actual memberships. <strong>Implementation:</strong> <code>SearchView</code>.</p>
+      </div>
+    </details>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

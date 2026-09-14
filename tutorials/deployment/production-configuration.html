@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Production Configuration — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "deployment/production-configuration.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Deployment: <span class="accent-word">Production Configuration</span></h1>
+      <p class="page-subtitle">What config/settings/production.py actually guarantees.</p>
+    </div>
+
+
+    <ul>
+      <li><strong>Refuses to start misconfigured:</strong> raises <code>RuntimeError</code> at import time if <code>SECRET_KEY</code>, <code>ALLOWED_HOSTS</code>, or <code>DATABASE_URL</code> is unset/empty.</li>
+      <li><code>DEBUG = False</code>; the browsable API is disabled (<code>DEFAULT_RENDERER_CLASSES</code> → JSON only).</li>
+      <li><code>CORS_ALLOW_ALL_ORIGINS = False</code> — origins come only from <code>CORS_ALLOWED_ORIGINS</code>.</li>
+      <li><code>SECURE_SSL_REDIRECT</code> (default <code>True</code>), <code>SESSION_COOKIE_SECURE</code>, <code>CSRF_COOKIE_SECURE</code>, <code>CSRF_COOKIE_HTTPONLY</code>.</li>
+      <li><code>SECURE_HSTS_SECONDS</code> (default one year) with <code>SECURE_HSTS_INCLUDE_SUBDOMAINS</code> and <code>SECURE_HSTS_PRELOAD</code>.</li>
+      <li><code>SECURE_CONTENT_TYPE_NOSNIFF = True</code>, <code>X_FRAME_OPTIONS = "DENY"</code>.</li>
+      <li><code>SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")</code> — trusts Render's forwarded-proto header so Django knows the original request was HTTPS even though Render terminates TLS in front of the container.</li>
+      <li><code>CSRF_TRUSTED_ORIGINS</code> comes only from its own env var — nothing is trusted by default.</li>
+    </ul>
+    <p>See <a href="../codebase/configuration.html">Codebase → Configuration</a> for how this fits alongside <code>base.py</code>/<code>development.py</code>.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

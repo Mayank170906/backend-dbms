@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Functional Requirements — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "requirements/functional-requirements.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Functional <span class="accent-word">Requirements</span></h1>
+      <p class="page-subtitle">FR-001 through FR-010, each mapped to the real service/module that implements it.</p>
+    </div>
+
+
+    <table>
+      <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Implementation</th></tr></thead>
+      <tbody>
+        <tr><td>FR-001</td><td>Register, JWT login/refresh/logout, and password reset without revealing whether an email is registered.</td><td>Must</td><td><code>apps/accounts/api/views.py</code></td></tr>
+        <tr><td>FR-002</td><td>Create organizations and manage member roles.</td><td>Must</td><td><code>OrganizationService</code></td></tr>
+        <tr><td>FR-003</td><td>Create teams within an organization.</td><td>Should</td><td><code>TeamService</code></td></tr>
+        <tr><td>FR-004</td><td>Create projects within an organization and manage project-level membership.</td><td>Must</td><td><code>ProjectService</code></td></tr>
+        <tr><td>FR-005</td><td>Create, assign, label, and comment on tasks.</td><td>Must</td><td><code>TaskService</code>, <code>CommentService</code></td></tr>
+        <tr><td>FR-006</td><td>Define custom workflow states and transitions; reject a transition with no matching rule or a caller role that isn't permitted.</td><td>Must</td><td><code>WorkflowService.transition_task</code></td></tr>
+        <tr><td>FR-007</td><td>Record an immutable log entry for every significant state change.</td><td>Must</td><td><code>ActivityService.log</code>, <code>ActivityLog.save/delete</code> overrides</td></tr>
+        <tr><td>FR-008</td><td>Notify a user on assignment, mention, or a task/workflow change affecting them, both via a queryable list and live over WebSocket.</td><td>Must</td><td><code>NotificationService</code>, <code>NotificationConsumer</code></td></tr>
+        <tr><td>FR-009</td><td>Full-text search across task titles/descriptions, project names/descriptions, and comment bodies, scoped to what the caller can access.</td><td>Should</td><td><code>apps/analytics/api/views.py::SearchView</code></td></tr>
+        <tr><td>FR-010</td><td>Request an asynchronous CSV export of a project's tasks.</td><td>Should</td><td><code>export_project_tasks_csv</code> Celery task</td></tr>
+      </tbody>
+    </table>
+    <p>See <a href="../requirements/traceability-matrix.html">Traceability Matrix</a> for the file/class/test mapping in full.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

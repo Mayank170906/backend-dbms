@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Does This Code Mean? — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "developer-notes/what-does-this-code-mean.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>What Does <span class="accent-word">This Code Mean?</span></h1>
+      <p class="page-subtitle">Four snippets, explained line by line.</p>
+    </div>
+
+
+    <div class="note">The <code>transition_task</code> and <code>assign</code> snippets below are simplified illustrations of documented, verified behavior (method signatures, checks performed, and outcomes are all confirmed against the real service/view code) — condensed for teaching rather than pasted as a literal file dump. The <code>ActivityLog</code> and <code>JWTAuthMiddleware</code> snippets are quoted from the actual source.</div>
+    <h2>WorkflowService.transition_task</h2>
+    <pre><code>@classmethod
+@transaction.atomic
+def transition_task(cls, *, task, to_state, user):
+    cls._ensure_project_member(project=task.project, user=user)
+    transition = WorkflowTransition.objects.filter(
+        workflow=task.workflow_state.workflow if task.workflow_state else to_state.workflow,
+        from_state=task.workflow_state,
+        to_state=to_state,
+    ).first()
+    if transition is None:
+        raise ValueError("No such transition is defined for this workflow.")
+    role = ProjectMembership.objects.get(project=task.project, user=user).role
+    if transition.allowed_roles and role not in transition.allowed_roles:
+        raise PermissionError("Your role cannot perform this transition.")
+    task.workflow_state = to_state
+    task.save(update_fields=["workflow_state"])
+    ActivityService.log(...)
+    NotificationService.notify(...)
+    return task</code></pre>
+    <p>
+      <code>@classmethod</code> because it needs to call other classmethods on the same
+      class; <code>@transaction.atomic</code> because a transition, its activity log entry,
+      and its notification must all succeed or all roll back together. The membership
+      check runs first — a non-member never even gets to the "is this transition valid"
+      question. Looking up the <code>WorkflowTransition</code> by <code>(workflow,
+      from_state, to_state)</code> is what makes "skip a state" or "enter at a non-initial
+      state" fail: if no row matches that exact triple, there's no valid path, full stop.
+    </p>
+
+    <h2>TaskViewSet's custom actions</h2>
+    <pre><code>@action(detail=True, methods=["post"])
+def assign(self, request, pk=None):
+    task = self.get_object()
+    serializer = TaskAssignSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = User.objects.get(pk=serializer.validated_data["user_id"])
+    TaskService.assign(task=task, user=user, actor=request.user)
+    return Response(TaskSerializer(task).data)</code></pre>
+    <p>
+      <code>@action(detail=True, ...)</code> registers this at <code>tasks/{pk}/assign/</code>
+      rather than a top-level route — DRF's router wires that up automatically from the
+      decorator, no manual URL entry needed. <code>self.get_object()</code> re-uses the
+      same scoped queryset every other action on this viewset uses, so a non-member still
+      gets 404 here too, not a special-cased check. The view's own job stops at
+      "validate the input shape, then hand off" — <code>TaskService.assign</code> does the
+      actual work.
+    </p>
+
+    <h2>ActivityLog's save()/delete() override</h2>
+    <pre><code>def save(self, *args, **kwargs):
+    if self.pk is not None:
+        raise ValueError("ActivityLog entries are immutable and cannot be updated.")
+    super().save(*args, **kwargs)
+
+def delete(self, *args, **kwargs):
+    raise ValueError("ActivityLog entries cannot be deleted; they are a permanent audit trail.")</code></pre>
+    <p>
+      <code>self.pk is not None</code> is how Django's ORM distinguishes an update from an
+      insert — a fresh instance has no primary key yet. Raising instead of updating turns
+      "someone tried to edit an audit log entry" from a silent bug into an immediate,
+      loud failure. <code>delete()</code> is simpler still: there is no legitimate reason
+      to ever call it, so it always raises.
+    </p>
+
+    <h2>JWTAuthMiddleware (WebSocket auth)</h2>
+    <pre><code>class JWTAuthMiddleware(BaseMiddleware):
+    async def __call__(self, scope, receive, send):
+        query = parse_qs(scope["query_string"].decode())
+        token = query.get("token", [None])[0]
+        scope["user"] = await self._get_user(token)
+        return await super().__call__(scope, receive, send)</code></pre>
+    <p>
+      This is Channels' ASGI middleware pattern, not Django's HTTP middleware — it wraps
+      the connection <em>scope</em> once, at connect time, rather than running per-message.
+      Parsing the token out of <code>scope["query_string"]</code> is the workaround for a
+      browser's WebSocket API not supporting custom headers during the handshake. Setting
+      <code>scope["user"]</code> is what lets <code>ProjectConsumer</code>/
+      <code>NotificationConsumer</code> later check <code>self.scope["user"]</code> exactly
+      like a view checks <code>request.user</code>.
+    </p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORM Notes — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "developer-notes/orm-notes.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Developer Notes: <span class="accent-word">ORM Notes</span></h1>
+      <p class="page-subtitle">on_delete choices, N+1 avoidance, transactions, and Postgres-specific fields.</p>
+    </div>
+
+
+    <h2>on_delete is a modeling decision, not a default</h2>
+    <p>See <a href="../database/relationships.html">Database → Relationships</a> for the full PROTECT/CASCADE/SET_NULL breakdown — the short version: PROTECT for single-owner relationships, CASCADE for dependent rows that have no meaning alone, SET_NULL for high-cardinality attribution fields.</p>
+    <h2>Avoiding N+1 queries</h2>
+    <p><code>TaskViewSet.get_queryset()</code> uses <code>select_related</code> (for single-valued FKs like <code>created_by</code>, <code>workflow_state</code>) and <code>prefetch_related</code> (for the <code>labels</code>/<code>assignees</code> many-to-manys) so that listing N tasks doesn't issue N additional queries for their related objects. <code>tests/test_performance.py</code> asserts the query count with a fixed budget rather than trusting this by inspection alone.</p>
+    <h2>Transactions wrap "the write plus its consequences"</h2>
+    <p>Every service method that both writes a row and logs/notifies wraps both in <code>@transaction.atomic</code> — e.g. <code>TaskService.assign</code> creates the <code>TaskAssignment</code> and calls <code>ActivityService.log</code>/<code>NotificationService.notify</code> in one transaction. <code>tests/test_transactions.py</code> deliberately breaks the second half (via monkeypatching) to prove the first half also rolls back.</p>
+    <h2>Postgres-specific fields, used for real</h2>
+    <p><code>ArrayField</code> (<code>WorkflowTransition.allowed_roles</code>) avoids a join table for a small, unordered set of role strings. <code>SearchVectorField</code> + <code>GinIndex</code> (Project/Task/Comment) gives indexed full-text search without a separate search service.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Authentication Workflow — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "workflows/authentication-workflow.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Authentication <span class="accent-word">Workflow</span></h1>
+      <p class="page-subtitle">The JWT lifecycle, told as a user journey rather than a wire-protocol diagram.</p>
+    </div>
+
+
+    <p>
+      For the step-through technical diagram of this same flow, see
+      <a href="../architecture/authentication-flow.html">Architecture → Authentication
+      Flow</a>. This page tells the same story from the user's side.
+    </p>
+    <ol>
+      <li>A new user registers once. From then on they log in with username + password.</li>
+      <li>A successful login hands the frontend an access token (used on every request for the next 30 minutes) and a refresh token (valid 7 days).</li>
+      <li>When the access token expires, the frontend silently exchanges the refresh token for a new pair — the user never has to log in again mid-session. The old refresh token is immediately invalidated (rotation + blacklist), so a leaked, already-used refresh token can't be replayed.</li>
+      <li>Logging out blacklists whatever refresh token the client currently holds, so it can't be used again even if it leaks afterward.</li>
+      <li>Opening a real-time feature (the notification bell, a project's live activity tab) opens a WebSocket carrying the current access token as a URL parameter — the same 30-minute token, a separate authentication path from the HTTP one.</li>
+    </ol>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

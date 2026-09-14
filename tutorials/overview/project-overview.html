@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Overview — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "overview/project-overview.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Project <span class="accent-word">Overview</span></h1>
+      <p class="page-subtitle">What Backend DBMS is, who it's for, and why it exists.</p>
+    </div>
+
+    <h2>What it is</h2>
+    <p>
+      Backend DBMS is a self-contained, multi-tenant workflow and project
+      management platform — the same shape of product as Jira, Linear, or
+      Trello — built end-to-end as a demonstration of production-grade
+      Django backend engineering. Organizations own projects; projects run
+      on administrator-configurable workflows; tasks move through those
+      workflows, get assigned, commented on, and exported; and every
+      meaningful change is logged and pushed to connected clients in real
+      time.
+    </p>
+    <p>
+      "Multi-tenant" is not a marketing word here — it is the organizing
+      constraint on the whole data model and permission system. Every
+      organization's data (projects, tasks, comments, workflows) is
+      completely isolated from every other organization's, enforced at the
+      queryset level rather than only in the UI. See
+      <a href="../requirements/actors.html">Actors</a> and
+      <a href="../codebase/permissions.html">Permissions</a> for how that
+      isolation is actually implemented.
+    </p>
+
+    <h2>Why it exists</h2>
+    <p>
+      The project's purpose is to be a realistic, non-trivial backend that
+      exercises the parts of Django/DRF engineering that a CRUD tutorial
+      usually skips: a real relational schema with deliberate
+      <code>on_delete</code> choices, a service layer that keeps business
+      rules in one place, JWT authentication with rotation and blacklisting,
+      Postgres full-text search, Redis-backed caching and rate limiting,
+      Celery for background/scheduled work, and Django Channels for
+      WebSocket-based real-time updates — all wired together and covered by
+      an actual test suite. The <a href="../overview/current-status.html">Current
+      Status</a> page is explicit about which of those pieces are fully
+      operational in the live deployment versus configured-but-not-yet
+      provisioned.
+    </p>
+
+    <h2>Where it runs</h2>
+    <p>
+      The application is deployed as a Docker image on Render, backed by a
+      Supabase-hosted PostgreSQL database, at
+      <a href="https://backend-dbms-p4su.onrender.com/">backend-dbms-p4su.onrender.com</a>.
+      The source is at
+      <a href="https://github.com/Mayank170906/backend-dbms">github.com/Mayank170906/backend-dbms</a>.
+      Full deployment details live under <a href="../deployment/render.html">Deployment</a>.
+    </p>
+
+    <h2>How to read this documentation</h2>
+    <p>
+      This site is organized so you can approach the project from whichever
+      direction matches what you need:
+    </p>
+    <ul>
+      <li><strong>New to the project?</strong> Start with <a href="../getting-started/prerequisites.html">Getting Started</a> to run it locally.</li>
+      <li><strong>Evaluating the design?</strong> <a href="../architecture/system-architecture.html">Architecture</a> and <a href="../requirements/srs.html">Requirements</a> cover the "why" behind the structure.</li>
+      <li><strong>Working in the code?</strong> <a href="../codebase/project-structure.html">Codebase</a> and <a href="../api/overview.html">API</a> map directly onto the real files and endpoints.</li>
+      <li><strong>Shipping a change?</strong> <a href="../testing/architecture.html">Testing</a> and <a href="../deployment/local.html">Deployment</a> cover how to verify and release it.</li>
+    </ul>
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

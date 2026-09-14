@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database Overview — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "database/overview.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Database <span class="accent-word">Overview</span></h1>
+      <p class="page-subtitle">PostgreSQL, reached through a single DATABASE_URL, chosen for two features this project actually uses.</p>
+    </div>
+
+
+    <p>
+      PostgreSQL is the only system of record — Supabase-hosted in production, a
+      compose-managed <code>postgres:16-alpine</code> container in dev. Both are reached
+      through exactly one setting, <code>DATABASE_URL</code>, parsed by
+      <code>dj_database_url.config()</code>. There is no separate read replica, cache
+      database, or secondary store for any model data.
+    </p>
+    <h2>Why Postgres specifically</h2>
+    <p>
+      Two Postgres-native features are used directly by real models, not just
+      theoretically available: full-text search
+      (<code>SearchVectorField</code> + <code>GinIndex</code> on <code>Project</code>,
+      <code>Task</code>, <code>Comment</code>) and <code>ArrayField</code>
+      (<code>WorkflowTransition.allowed_roles</code>). Both would need either a separate
+      search service or an extra join table on MySQL/SQLite. SQLite specifically also
+      can't hold up under the concurrent writes this system needs once Celery workers and
+      the web process write at the same time.
+    </p>
+    <p>See <a href="../database/er-diagram.html">ER Diagram</a> for the full schema, and <a href="../deployment/supabase.html">Deployment → Supabase</a> for the production connection details.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Running with Docker — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "getting-started/running-with-docker.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Getting Started: <span class="accent-word">Running with Docker</span></h1>
+      <p class="page-subtitle">The full stack — app, database, Redis, worker, beat — in one command.</p>
+    </div>
+
+
+    <pre><code>docker compose up</code></pre>
+    <p>This starts every service defined in <code>docker-compose.yml</code>:</p>
+    <table>
+      <thead><tr><th>Service</th><th>Image / build</th><th>Command</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>db</code></td><td><code>postgres:16-alpine</code></td><td>—</td><td>Port 5432 published; <code>pg_isready</code> healthcheck; data in the <code>postgres_data</code> volume.</td></tr>
+        <tr><td><code>redis</code></td><td><code>redis:7-alpine</code></td><td>—</td><td>Port 6379 published; <code>redis-cli ping</code> healthcheck; data in the <code>redis_data</code> volume.</td></tr>
+        <tr><td><code>web</code></td><td>built from the repo's <code>Dockerfile</code></td><td><code>python manage.py runserver 0.0.0.0:8000</code></td><td>Source bind-mounted (<code>.:/app</code>) for live reload; port 8000 published; <code>media_data</code> volume for uploads.</td></tr>
+        <tr><td><code>worker</code></td><td>same image as <code>web</code></td><td><code>celery -A config worker --loglevel=info</code></td><td>Same source mount.</td></tr>
+        <tr><td><code>beat</code></td><td>same image as <code>web</code></td><td><code>celery -A config beat --loglevel=info</code></td><td>Same source mount; writes the schedule DB.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      A shared <code>x-app-env</code> anchor points <code>DATABASE_URL</code>
+      at the <code>db</code> service by name and <code>REDIS_URL</code>/
+      <code>CELERY_BROKER_URL</code>/<code>CELERY_RESULT_BACKEND</code>/
+      <code>CACHE_URL</code>/<code>CHANNELS_REDIS_URL</code> at the
+      <code>redis</code> service on DB indexes 0/0/1/2/3 respectively — so
+      every service in this stack sees a fully working Redis and Postgres
+      without you configuring anything by hand.
+    </p>
+    <p>
+      Full walkthrough of the underlying <code>Dockerfile</code> and how it
+      differs from the production compose file is on
+      <a href="../deployment/docker.html">Deployment → Docker</a>.
+    </p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

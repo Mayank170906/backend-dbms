@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deployment Architecture — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "architecture/deployment-architecture.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Deployment <span class="accent-word">Architecture</span></h1>
+      <p class="page-subtitle">GitHub owns the source, Render owns compute, Supabase owns the database.</p>
+    </div>
+
+
+    <div class="diagram-svg">
+      <svg viewBox="0 0 680 300" role="img" aria-labelledby="deploy-title deploy-desc">
+        <title id="deploy-title">Render deployment architecture</title>
+        <desc id="deploy-desc">GitHub pushes trigger a Docker build on Render, which runs the Django/Daphne container; the container connects over DATABASE_URL to Supabase PostgreSQL.</desc>
+        <defs><marker id="arrow-deploy2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--text-muted)"></path></marker></defs>
+        <g class="sd-node"><rect x="260" y="10" width="160" height="56" rx="10" class="sd-box"></rect><text x="340" y="35" text-anchor="middle" class="sd-title">GitHub</text><text x="340" y="53" text-anchor="middle" class="sd-sub">Django project</text></g>
+        <line x1="340" y1="66" x2="340" y2="100" class="sd-arrow" marker-end="url(#arrow-deploy2)"></line>
+        <text x="340" y="88" text-anchor="middle" class="sd-arrow-label">deploy on push</text>
+        <g class="sd-node"><rect x="190" y="102" width="300" height="76" rx="10" class="sd-box sd-primary"></rect><text x="340" y="123" text-anchor="middle" class="sd-title">Render Web Service</text><text x="340" y="141" text-anchor="middle" class="sd-sub">Docker build → container</text><text x="340" y="159" text-anchor="middle" class="sd-sub">Django + Daphne on 0.0.0.0:$PORT</text></g>
+        <line x1="340" y1="178" x2="340" y2="212" class="sd-arrow" marker-end="url(#arrow-deploy2)"></line>
+        <text x="340" y="200" text-anchor="middle" class="sd-arrow-label">DATABASE_URL</text>
+        <g class="sd-node"><rect x="230" y="214" width="220" height="60" rx="10" class="sd-box sd-data"></rect><text x="340" y="240" text-anchor="middle" class="sd-title">Supabase PostgreSQL</text><text x="340" y="258" text-anchor="middle" class="sd-sub">Session Pooler connection</text></g>
+      </svg>
+      <p class="sd-caption">The only thing that crosses the GitHub/Render/Supabase boundary is the <code>DATABASE_URL</code> connection string. Full walkthrough: <a href="../deployment/render.html">Deployment → Render</a>.</p>
+    </div>
+    <p>
+      This diagram intentionally omits Redis/Celery/Channels — see
+      <a href="../overview/current-status.html">Current Status</a> for why those are
+      configured in code but not part of the current Render deployment's topology.
+    </p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

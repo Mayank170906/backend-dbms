@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Architecture — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "testing/architecture.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Test <span class="accent-word">Architecture</span></h1>
+      <p class="page-subtitle">pytest + pytest-django + pytest-asyncio, all tests centralized under one top-level directory.</p>
+    </div>
+
+
+    <p>
+      Every test lives under the top-level <code>tests/</code> directory (17 files) — not
+      inside each app, which is a deliberate departure from Django's per-app <code>tests.py</code>
+      convention, chosen so a test can freely exercise multiple apps together (a task
+      transition test touches <code>tasks</code>, <code>workflows</code>, <code>activity</code>,
+      and <code>notifications</code> in one flow).
+    </p>
+    <pre><code>[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.development"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "--reuse-db"
+asyncio_mode = "auto"</code></pre>
+    <ul>
+      <li><strong>pytest-django</strong> provides the <code>db</code> fixture and Django test client integration; <code>--reuse-db</code> skips recreating the test database on every run (drop it manually after a schema change with <code>--create-db</code> once).</li>
+      <li><strong>pytest-asyncio</strong> (<code>asyncio_mode = "auto"</code>) is required specifically for <code>tests/test_websocket_consumers.py</code>, which drives Channels' async test client.</li>
+      <li><strong>pytest-cov</strong> scopes coverage to <code>source = ["apps"]</code>, omitting <code>*/migrations/*</code> and <code>*/tests/*</code>.</li>
+    </ul>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

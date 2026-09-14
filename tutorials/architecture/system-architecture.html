@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Architecture — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "architecture/system-architecture.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>System <span class="accent-word">Architecture</span></h1>
+      <p class="page-subtitle">Deployment topology and the multi-tenancy model that shapes everything else.</p>
+    </div>
+
+
+    <h2>Deployment Topology</h2>
+    <div class="diagram-svg">
+      <svg viewBox="0 0 680 260" role="img" aria-labelledby="sysarch-title sysarch-desc">
+        <title id="sysarch-title">Deployment topology</title>
+        <desc id="sysarch-desc">Five containers: web, worker, beat, db, redis, each defined as a docker-compose service.</desc>
+        <g class="sd-node"><rect x="270" y="10" width="140" height="50" rx="10" class="sd-box sd-primary"></rect><text x="340" y="32" text-anchor="middle" class="sd-title">web</text><text x="340" y="48" text-anchor="middle" class="sd-sub">Daphne / Django</text></g>
+        <g class="sd-node"><rect x="90" y="100" width="140" height="50" rx="10" class="sd-box"></rect><text x="160" y="122" text-anchor="middle" class="sd-title">worker</text><text x="160" y="138" text-anchor="middle" class="sd-sub">celery worker</text></g>
+        <g class="sd-node"><rect x="270" y="100" width="140" height="50" rx="10" class="sd-box"></rect><text x="340" y="122" text-anchor="middle" class="sd-title">beat</text><text x="340" y="138" text-anchor="middle" class="sd-sub">celery beat</text></g>
+        <g class="sd-node"><rect x="450" y="100" width="140" height="50" rx="10" class="sd-box sd-data"></rect><text x="520" y="122" text-anchor="middle" class="sd-title">redis</text><text x="520" y="138" text-anchor="middle" class="sd-sub">cache · broker · channels</text></g>
+        <g class="sd-node"><rect x="270" y="190" width="140" height="50" rx="10" class="sd-box sd-data"></rect><text x="340" y="212" text-anchor="middle" class="sd-title">db</text><text x="340" y="228" text-anchor="middle" class="sd-sub">PostgreSQL 16</text></g>
+        <line x1="340" y1="60" x2="340" y2="95" class="sd-arrow"></line>
+        <line x1="160" y1="60" x2="160" y2="60" class="sd-arrow"></line>
+        <path d="M270,35 L160,35 L160,95" class="sd-arrow"></path>
+        <path d="M410,35 L520,35 L520,95" class="sd-arrow"></path>
+        <line x1="340" y1="150" x2="340" y2="185" class="sd-arrow"></line>
+        <path d="M160,150 L160,215 L265,215" class="sd-arrow"></path>
+      </svg>
+      <p class="sd-caption">Every box is one compose service (dev: <code>docker-compose.yml</code>; prod: <code>docker-compose.prod.yml</code>). <code>web</code>/<code>worker</code>/<code>beat</code> share the same built image and source tree, differing only in their command.</p>
+    </div>
+    <p>In production, <code>web</code> runs on Render as the one deployed container; <code>db</code> is Supabase-hosted Postgres reached via <code>DATABASE_URL</code> rather than the compose <code>db</code> service. See <a href="../architecture/deployment-architecture.html">Deployment Architecture</a> for that variant.</p>
+
+    <h2>Multi-Tenancy Model</h2>
+    <p>
+      "Tenant" in this system is the <code>Organization</code>. Everything else — teams, workflows,
+      projects, tasks, comments, activity — hangs off an organization, directly or through a project.
+      There is no shared/global data a tenant can accidentally see: every list endpoint's queryset is
+      filtered by the caller's actual <code>Membership</code>/<code>ProjectMembership</code> rows, not
+      by a permission check applied after fetching. A non-member requesting an object that exists but
+      isn't theirs gets <code>404</code>, not <code>403</code> — the object genuinely isn't in their
+      queryset, so a <code>403</code> (which would confirm the object's existence) is never an option.
+      See <a href="../codebase/permissions.html">Permissions</a> and
+      <a href="../api/error-handling.html">API → Error Handling</a>.
+    </p>
+    <div class="diagram-svg">
+      <svg viewBox="0 0 640 190" role="img" aria-labelledby="tenancy-title tenancy-desc">
+        <title id="tenancy-title">Ownership chain</title>
+        <desc id="tenancy-desc">Organization owns Memberships, Teams, Workflows and Projects; Project owns ProjectMemberships and Tasks; Task owns Comments and TaskAssignments.</desc>
+        <g class="sd-node"><rect x="10" y="70" width="150" height="50" rx="10" class="sd-box sd-primary"></rect><text x="85" y="92" text-anchor="middle" class="sd-title">Organization</text><text x="85" y="108" text-anchor="middle" class="sd-sub">Membership · Team · Workflow</text></g>
+        <line x1="160" y1="95" x2="245" y2="95" class="sd-arrow"></line>
+        <g class="sd-node"><rect x="248" y="70" width="150" height="50" rx="10" class="sd-box sd-primary"></rect><text x="323" y="92" text-anchor="middle" class="sd-title">Project</text><text x="323" y="108" text-anchor="middle" class="sd-sub">ProjectMembership</text></g>
+        <line x1="398" y1="95" x2="483" y2="95" class="sd-arrow"></line>
+        <g class="sd-node"><rect x="486" y="70" width="150" height="50" rx="10" class="sd-box sd-primary"></rect><text x="561" y="92" text-anchor="middle" class="sd-title">Task</text><text x="561" y="108" text-anchor="middle" class="sd-sub">Comment · TaskAssignment</text></g>
+      </svg>
+      <p class="sd-caption">Every access-control check ultimately walks this chain back to a membership row for the requesting user.</p>
+    </div>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

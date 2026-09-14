@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supabase — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "deployment/supabase.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Deployment: <span class="accent-word">Supabase</span></h1>
+      <p class="page-subtitle">PostgreSQL's role, the Session Pooler connection, and why the API keys aren't the database.</p>
+    </div>
+
+
+    <p>Supabase's only role in this project is hosting the PostgreSQL database — the app doesn't call the Supabase API for anything else.</p>
+    <h2>Connection</h2>
+    <p>
+      In Supabase: <strong>Project → Connect</strong> gives the Postgres connection info.
+      For a persistent backend like this one, the <strong>Session Pooler</strong>
+      connection is the one to use — it works even when the deployment environment only
+      has IPv4 connectivity.
+    </p>
+    <pre><code>postgresql://postgres.xxxxx:YOUR_PASSWORD@aws-0-region.pooler.supabase.com:5432/postgres</code></pre>
+    <p>
+      If Supabase gives a placeholder like <code>[YOUR-PASSWORD]</code>, replace it with
+      the real password (brackets removed) and URL-encode any special characters. Use the
+      string Supabase generates rather than hand-building one, and never commit it to
+      GitHub.
+    </p>
+    <h2>Database credentials ≠ API keys</h2>
+    <p>
+      Supabase also issues API-level variables — <code>SUPABASE_URL</code>,
+      <code>SUPABASE_PUBLISHABLE_KEY</code>, <code>SUPABASE_SECRET_KEY</code>,
+      <code>SUPABASE_JWKS_URL</code>. Those are unrelated to <code>DATABASE_URL</code> and
+      this project's own JWT auth (<a href="../api/authentication.html">API →
+      Authentication</a>) doesn't use them — don't substitute one for the other.
+    </p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

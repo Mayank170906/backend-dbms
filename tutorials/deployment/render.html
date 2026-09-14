@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Render — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "deployment/render.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Deployment: <span class="accent-word">Render</span></h1>
+      <p class="page-subtitle">How this project is actually deployed in production — a Docker image built from this repo, run as a Render Web Service, talking to Supabase Postgres.</p>
+    </div>
+
+
+    <p>
+      Locally, Django talks to Postgres on <code>127.0.0.1</code> — the same
+      machine. In production there is no such thing: Render runs the container,
+      Supabase runs the database, and they only meet through a connection
+      string. Everything below follows from that one fact. Live at
+      <a href="https://backend-dbms-p4su.onrender.com/">backend-dbms-p4su.onrender.com</a>.
+    </p>
+
+    <h2>1. Point Django at DATABASE_URL, not localhost</h2>
+    <pre><code>import os
+import dj_database_url
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }</code></pre>
+    <p>Note <code>.get(...)</code> rather than <code>os.environ[...]</code> — see step 6.</p>
+
+    <h2>2. Generate a production SECRET_KEY</h2>
+    <pre><code>python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"</code></pre>
+
+    <h2>3. Set the production settings module and ALLOWED_HOSTS</h2>
+    <pre><code># Correct
+ALLOWED_HOSTS=backend-dbms-p4su.onrender.com,localhost,127.0.0.1
+
+# Wrong — no https:// here
+ALLOWED_HOSTS=https://backend-dbms-p4su.onrender.com</code></pre>
+
+    <h2>4. Render environment variables</h2>
+    <pre><code>DJANGO_SETTINGS_MODULE=config.settings.production
+DEBUG=False
+ALLOWED_HOSTS=backend-dbms-p4su.onrender.com
+SECRET_KEY=YOUR_GENERATED_DJANGO_SECRET_KEY
+DATABASE_URL=YOUR_SUPABASE_DATABASE_URL</code></pre>
+
+    <h2>5. Don't require DATABASE_URL at Docker build time</h2>
+    <p>
+      Render builds the image before the runtime environment exists. If a management
+      command hard-requires <code>DATABASE_URL</code> via <code>os.environ["DATABASE_URL"]</code>,
+      the build fails before the app ever reaches Render's runtime — which is exactly why
+      step 1 uses <code>.get(...)</code>.
+    </p>
+    <pre><code>RUN SECRET_KEY=build-time-placeholder-unused-at-runtime \
+    ALLOWED_HOSTS=localhost \
+    DATABASE_URL=postgres://build:build@localhost/build \
+    python manage.py collectstatic --noinput \
+    --settings=config.settings.production</code></pre>
+
+    <h2>6. Bind to 0.0.0.0:$PORT</h2>
+    <pre><code>daphne -b 0.0.0.0 -p $PORT config.asgi:application</code></pre>
+
+    <h2>7. Deploy and apply migrations</h2>
+    <pre><code>Django version 6.1.1, using settings 'config.settings.production'
+Starting ASGI/Daphne ...
+Listening on TCP address 0.0.0.0:8000
+==> Your service is live</code></pre>
+    <pre><code>python manage.py migrate</code></pre>
+    <p>Where the plan supports it, run <code>migrate</code> as a pre-deploy/release step rather than on every web-process restart.</p>
+
+    <h2>Production checklist</h2>
+    <ul>
+      <li><code>DEBUG=False</code>, settings module is <code>config.settings.production</code></li>
+      <li><code>SECRET_KEY</code> generated and stored only in Render</li>
+      <li><code>DATABASE_URL</code> points at Supabase, not localhost</li>
+      <li>Supabase password never committed to GitHub</li>
+      <li><code>ALLOWED_HOSTS</code> includes the Render hostname, no scheme prefix</li>
+      <li>Docker build doesn't hard-require <code>DATABASE_URL</code></li>
+      <li>Migrations applied against Supabase after each schema change</li>
+      <li>Redis/Celery/Channels wired to a real service, or intentionally left unused — see <a href="../overview/current-status.html">Current Status</a></li>
+    </ul>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

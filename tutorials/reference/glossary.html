@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "reference/glossary.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Reference: <span class="accent-word">Glossary</span></h1>
+      <p class="page-subtitle">Every term used across this documentation, defined once. Type to filter.</p>
+    </div>
+
+
+    <input id="glossary-search" class="glossary-search" type="search" placeholder="Filter terms…" autocomplete="off">
+    <dl class="glossary">
+      <div><dt>Activity Log</dt><dd>An immutable record of a significant action (who, what, when, on what object). Once written, a row can never be updated or deleted — enforced in the model itself, not just by convention.</dd></div>
+      <div><dt>ADR (Architecture Decision Record)</dt><dd>A short document capturing a specific architectural decision, its context, and its consequences — see <a href="../reference/adrs.html">ADRs</a>.</dd></div>
+      <div><dt>ArrayField</dt><dd>A PostgreSQL-specific column type storing a list of values directly, without a separate join table. Used for <code>WorkflowTransition.allowed_roles</code>.</dd></div>
+      <div><dt>ASGI</dt><dd>Asynchronous Server Gateway Interface — the standard that lets one Python web server (Daphne, here) handle both regular HTTP requests and long-lived WebSocket connections.</dd></div>
+      <div><dt>Cache-Aside</dt><dd>A caching pattern: check the cache first; on a miss, compute the real answer and store it in the cache before returning. Used for project statistics.</dd></div>
+      <div><dt>Celery</dt><dd>A distributed task queue for Python. Runs code outside the request/response cycle — either on demand ("send this email") or on a schedule ("do this every day").</dd></div>
+      <div><dt>Celery Beat</dt><dd>Celery's scheduler process — it doesn't run jobs itself, it just pushes a job onto the queue at the right time for a worker to pick up.</dd></div>
+      <div><dt>Channel Layer</dt><dd>Django Channels' pub/sub abstraction, backed here by Redis — how one server process's WebSocket broadcast reaches every other process's open connections.</dd></div>
+      <div><dt>Django Channels</dt><dd>The library that extends Django to handle WebSocket connections (and other non-HTTP protocols) alongside its normal request/response handling.</dd></div>
+      <div><dt>DRF (Django REST Framework)</dt><dd>The library used to build this project's JSON API on top of Django — serializers, viewsets, permissions, pagination, filtering.</dd></div>
+      <div><dt>GenericForeignKey (GFK)</dt><dd>A Django field that can point at a row in <em>any</em> model, not just one specific model — used by <code>ActivityLog.target</code> and <code>Notification.target</code>.</dd></div>
+      <div><dt>GIN Index</dt><dd>Generalized Inverted Index — a PostgreSQL index type suited to values containing multiple components, like full-text search vectors and array columns.</dd></div>
+      <div><dt>IDOR (Insecure Direct Object Reference)</dt><dd>A vulnerability class where changing an id in a URL/request lets a user access another user's data. Prevented here by scoping every queryset to the caller's actual memberships.</dd></div>
+      <div><dt>JWT (JSON Web Token)</dt><dd>A signed, self-contained token used to authenticate API requests without a server-side session. This project uses a short-lived access token plus a longer, rotating refresh token.</dd></div>
+      <div><dt>Membership</dt><dd>The model recording that a user belongs to an organization (or project), and with what role.</dd></div>
+      <div><dt>Migration</dt><dd>A versioned, incremental description of a database schema change, generated and applied by Django so the database structure can evolve alongside the code.</dd></div>
+      <div><dt>N+1 Query</dt><dd>A performance bug where fetching N related objects triggers N additional database queries instead of one query that fetches everything together. Prevented with <code>select_related</code>/<code>prefetch_related</code>.</dd></div>
+      <div><dt>ORM (Object-Relational Mapper)</dt><dd>The layer that lets Python code query and manipulate the database using classes and methods instead of raw SQL — Django's ORM is used exclusively in this project.</dd></div>
+      <div><dt>PROTECT / SET_NULL / CASCADE</dt><dd>The three <code>on_delete</code> behaviors used for foreign keys in this project — respectively: block the delete, null out the reference, or delete the dependent row too. Chosen deliberately per relationship, never left at a default.</dd></div>
+      <div><dt>Service Layer</dt><dd>A per-app <code>services.py</code> module that owns business rules and validation, called by views, management commands, and other services alike — so a rule holds regardless of what triggered it.</dd></div>
+      <div><dt>SearchVectorField / SearchRank / SearchQuery</dt><dd>PostgreSQL full-text search primitives, exposed through Django's <code>django.contrib.postgres.search</code> module.</dd></div>
+      <div><dt>Serializer</dt><dd>A DRF class that converts between Python/model objects and JSON, and validates incoming data before it reaches the database.</dd></div>
+      <div><dt>Signal</dt><dd>A Django mechanism for running code automatically when a model event happens (e.g. <code>post_save</code>). Used here for cache invalidation and search-vector maintenance.</dd></div>
+      <div><dt>Throttling</dt><dd>DRF's rate-limiting mechanism, backed by the same Redis cache used for statistics — limits how many requests a client can make in a given window.</dd></div>
+      <div><dt>Transaction (transaction.atomic())</dt><dd>A database mechanism guaranteeing a group of writes either all succeed or all roll back together — never left half-applied.</dd></div>
+      <div><dt>Viewset</dt><dd>A DRF class that groups the logic for a whole resource (list, create, retrieve, update, delete) instead of writing a separate view function for each.</dd></div>
+      <div><dt>WebSocket</dt><dd>A persistent, two-way connection between client and server, used here for the live activity feed and notification stream.</dd></div>
+      <div><dt>Workflow / WorkflowState / WorkflowTransition</dt><dd>The three models that make a task's status pipeline configurable data rather than a hardcoded set of choices — an administrator defines the states and which transitions between them are legal, and for which roles.</dd></div>
+    </dl>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

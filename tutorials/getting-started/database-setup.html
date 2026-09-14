@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database Setup — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "getting-started/database-setup.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Getting Started: <span class="accent-word">Database Setup</span></h1>
+      <p class="page-subtitle">Getting a local Postgres database migrated and (optionally) seeded.</p>
+    </div>
+
+
+    <p>Two ways to get a local Postgres instance, matching the two run modes:</p>
+    <h2>Option A — via Docker Compose</h2>
+    <p>The <code>db</code> service in <code>docker-compose.yml</code> (<code>postgres:16-alpine</code>, with a <code>pg_isready</code> healthcheck) is started automatically by <code>docker compose up</code> — see <a href="../getting-started/running-with-docker.html">Running with Docker</a>. Its connection details are wired into <code>DATABASE_URL</code> by the compose file's shared env block.</p>
+    <h2>Option B — native Postgres</h2>
+    <p>Point <code>DATABASE_URL</code> in your <code>.env</code> at a Postgres instance you run yourself, e.g.:</p>
+    <pre><code>DATABASE_URL=postgresql://postgres:postgres@localhost:5432/backend_dbms</code></pre>
+    <h2>Apply migrations</h2>
+    <pre><code>uv run python manage.py migrate</code></pre>
+    <h2>Optional: seed realistic demo data</h2>
+    <pre><code>uv run python manage.py seed_data
+# or, to wipe and recreate the demo data:
+uv run python manage.py seed_data --clear</code></pre>
+    <p>
+      <code>seed_data</code> (<code>apps/organizations/management/commands/seed_data.py</code>)
+      creates 3 demo organizations ("Demo: Acme Corp", "Demo: Globex Industries",
+      "Demo: Initech"), users, teams, workflows, projects, tasks, labels, and
+      comments — entirely through the real service layer
+      (<code>OrganizationService</code>, <code>ProjectService</code>,
+      <code>TaskService</code>, etc.), not raw <code>.objects.create()</code>
+      calls, so the seeded data exercises the same code paths as real usage.
+    </p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

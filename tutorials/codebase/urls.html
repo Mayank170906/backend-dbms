@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URLs — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/urls.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">URLs</span></h1>
+      <p class="page-subtitle">The complete URL map: config/urls.py, config/api_router.py, and WebSocket routing.</p>
+    </div>
+
+
+<p>Routing is centralized, not spread per-app: <code>config/api_router.py</code> registers every ViewSet on one <code>DefaultRouter</code>, mounted at <code>/api/v1/</code> from <code>config/urls.py</code>. Only <code>accounts</code> has its own <code>urls.py</code> (for the non-ViewSet auth endpoints).</p>
+
+<h2>config/urls.py</h2>
+<table><thead><tr><th>Path</th><th>Target</th></tr></thead><tbody>
+<tr><td><code>admin/</code></td><td>Django admin</td></tr>
+<tr><td><code>api/v1/</code></td><td><code>config.api_router</code></td></tr>
+<tr><td><code>api/schema/</code></td><td><code>SpectacularAPIView</code></td></tr>
+<tr><td><code>api/docs/</code></td><td><code>SpectacularSwaggerView</code></td></tr>
+<tr><td><code>""</code>, <code>login/</code>, <code>register/</code>, <code>organizations/&lt;int:pk&gt;/</code>, <code>projects/&lt;int:pk&gt;/</code>, <code>notifications/</code>, <code>search/</code></td><td>Plain <code>TemplateView</code>s — zero ORM access from any of these routes</td></tr>
+</tbody></table>
+<p><code>MEDIA_URL</code> is served by Django itself only when <code>DEBUG=True</code>.</p>
+
+<h2>config/api_router.py (mounted at /api/v1/)</h2>
+<table><thead><tr><th>Prefix</th><th>ViewSet / view</th><th>Extra actions</th></tr></thead><tbody>
+<tr><td><code>auth/</code></td><td>include <code>apps.accounts.api.urls</code></td><td>—</td></tr>
+<tr><td><code>search/</code></td><td><code>SearchView</code> (GET)</td><td>—</td></tr>
+<tr><td><code>users</code></td><td><code>UserViewSet</code></td><td>list/retrieve only</td></tr>
+<tr><td><code>organizations</code></td><td><code>OrganizationViewSet</code></td><td><code>{pk}/members/</code></td></tr>
+<tr><td><code>teams</code></td><td><code>TeamViewSet</code></td><td>—</td></tr>
+<tr><td><code>projects</code></td><td><code>ProjectViewSet</code></td><td><code>{pk}/members/</code>, <code>{pk}/activity/</code>, <code>{pk}/statistics/</code>, <code>{pk}/export/</code> (POST), <code>{pk}/exports/</code></td></tr>
+<tr><td><code>tasks</code></td><td><code>TaskViewSet</code></td><td><code>{pk}/assign/</code> (POST), <code>{pk}/transition/</code> (POST), <code>{pk}/comments/</code> (GET/POST)</td></tr>
+<tr><td><code>labels</code></td><td><code>LabelViewSet</code></td><td>—</td></tr>
+<tr><td><code>workflows</code></td><td><code>WorkflowViewSet</code></td><td><code>{pk}/states/</code> (POST), <code>{pk}/transitions/</code> (POST)</td></tr>
+<tr><td><code>notifications</code></td><td><code>NotificationViewSet</code></td><td><code>{pk}/read/</code> (POST), <code>read-all/</code> (POST)</td></tr>
+</tbody></table>
+
+<h2>apps/accounts/api/urls.py (mounted at /api/v1/auth/)</h2>
+<table><thead><tr><th>Path</th><th>Method</th><th>View</th></tr></thead><tbody>
+<tr><td><code>register/</code></td><td>POST</td><td><code>RegisterView</code></td></tr>
+<tr><td><code>login/</code></td><td>POST</td><td><code>LoginView</code> (SimpleJWT <code>TokenObtainPairView</code>)</td></tr>
+<tr><td><code>login/refresh/</code></td><td>POST</td><td><code>TokenRefreshView</code></td></tr>
+<tr><td><code>logout/</code></td><td>POST</td><td><code>LogoutView</code></td></tr>
+<tr><td><code>me/</code></td><td>GET</td><td><code>MeView</code></td></tr>
+<tr><td><code>password-reset/</code></td><td>POST</td><td><code>PasswordResetRequestView</code></td></tr>
+<tr><td><code>password-reset/confirm/</code></td><td>POST</td><td><code>PasswordResetConfirmView</code></td></tr>
+</tbody></table>
+
+<h2>WebSocket routing</h2>
+<p><code>config/routing.py</code> combines:</p>
+<ul>
+<li><code>apps/projects/routing.py</code>: <code>ws/projects/&lt;project_id&gt;/</code> → <code>ProjectConsumer</code></li>
+<li><code>apps/notifications/routing.py</code>: <code>ws/notifications/</code> → <code>NotificationConsumer</code></li>
+</ul>
+<p>See the full endpoint reference with auth/permission columns at <a href="../api/endpoints.html">API → Endpoints</a>.</p>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

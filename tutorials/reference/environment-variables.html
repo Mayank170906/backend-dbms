@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Environment Variables — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "reference/environment-variables.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Reference: <span class="accent-word">Environment Variables</span></h1>
+      <p class="page-subtitle">Every variable actually read by settings or declared in the .env example files. All values below are placeholders.</p>
+    </div>
+
+
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Variable</th><th>Purpose</th><th>Required?</th><th>Dev default</th><th>Production behavior</th><th>Sensitive?</th></tr></thead>
+      <tbody>
+        <tr><td><code>DJANGO_SETTINGS_MODULE</code></td><td>Which settings module to load</td><td>No (manage.py defaults to development)</td><td><code>config.settings.development</code></td><td>Must be <code>config.settings.production</code></td><td>No</td></tr>
+        <tr><td><code>DEBUG</code></td><td>Django debug mode</td><td>No</td><td><code>True</code> (forced in development.py)</td><td><code>False</code> (forced in production.py)</td><td>No</td></tr>
+        <tr><td><code>SECRET_KEY</code></td><td>Django cryptographic signing key</td><td>Yes in production (hard <code>RuntimeError</code> if unset)</td><td>falls back to a hardcoded insecure dev key</td><td>required, no fallback</td><td><strong>Yes</strong></td></tr>
+        <tr><td><code>ALLOWED_HOSTS</code></td><td>Valid Host headers, comma-separated</td><td>Yes in production</td><td><code>localhost,127.0.0.1</code></td><td>must include the real deployment hostname</td><td>No</td></tr>
+        <tr><td><code>CORS_ALLOWED_ORIGINS</code></td><td>Allowed cross-origin frontend origins, comma-separated</td><td>No</td><td>ignored — <code>CORS_ALLOW_ALL_ORIGINS=True</code> in dev</td><td>the only source of allowed origins (<code>CORS_ALLOW_ALL_ORIGINS=False</code>)</td><td>No</td></tr>
+        <tr><td><code>CSRF_TRUSTED_ORIGINS</code></td><td>Origins trusted for unsafe-method CSRF checks</td><td>No</td><td>not read in dev settings</td><td>read, empty by default — nothing trusted unless set</td><td>No</td></tr>
+        <tr><td><code>DATABASE_URL</code></td><td>Full Postgres connection string</td><td>Yes in production</td><td>points at local/compose Postgres</td><td>points at Supabase</td><td><strong>Yes</strong></td></tr>
+        <tr><td><code>POSTGRES_DB</code> / <code>POSTGRES_USER</code> / <code>POSTGRES_PASSWORD</code> / <code>POSTGRES_PORT</code></td><td>Used by <code>docker-compose.yml</code>'s <code>db</code> service and <code>docker/entrypoint.sh</code>'s readiness check</td><td>only for the compose <code>db</code> service</td><td>compose defaults</td><td>not used directly in production (Supabase is external)</td><td><strong>Yes</strong> (password)</td></tr>
+        <tr><td><code>REDIS_URL</code></td><td>Base Redis connection, other Redis vars default from this</td><td>No</td><td><code>redis://localhost:6379/0</code></td><td>must point at a real Redis if Celery/cache/Channels are used</td><td>No</td></tr>
+        <tr><td><code>CELERY_BROKER_URL</code> / <code>CELERY_RESULT_BACKEND</code></td><td>Celery's queue and result store</td><td>No</td><td>derived from <code>REDIS_URL</code></td><td>same</td><td>No</td></tr>
+        <tr><td><code>CACHE_URL</code></td><td>Django cache backend connection</td><td>No</td><td><code>redis://localhost:6379/2</code></td><td>same</td><td>No</td></tr>
+        <tr><td><code>CHANNELS_REDIS_URL</code></td><td>Channels' channel layer connection</td><td>No</td><td><code>redis://localhost:6379/3</code></td><td>same</td><td>No</td></tr>
+        <tr><td><code>SECURE_SSL_REDIRECT</code></td><td>Force HTTP→HTTPS redirect</td><td>No</td><td>not read in dev</td><td>default <code>True</code></td><td>No</td></tr>
+        <tr><td><code>DJANGO_LOG_LEVEL</code></td><td>Root logger level</td><td>No</td><td><code>INFO</code></td><td><code>INFO</code></td><td>No</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Supabase-only variables (<code>SUPABASE_URL</code>, <code>SUPABASE_PUBLISHABLE_KEY</code>, <code>SUPABASE_SECRET_KEY</code>, <code>SUPABASE_JWKS_URL</code>) are API credentials, not read by this project's settings — see <a href="../deployment/supabase.html">Deployment → Supabase</a> for why they're unrelated to <code>DATABASE_URL</code>.</p>
+    <p>Never commit real values for anything marked Sensitive. Use <code>.env.example</code>/<code>.env.production.example</code> as the templates.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

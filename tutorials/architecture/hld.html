@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>High-Level Design — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "architecture/hld.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>High-Level <span class="accent-word">Design</span></h1>
+      <p class="page-subtitle">The system's major components and how they talk to each other.</p>
+    </div>
+
+
+    <p>
+      Four layers: a browser client, one Django application process that owns both the
+      REST API and the WebSocket layer, PostgreSQL as the only system of record, and
+      Redis-backed asynchronous processing (Celery worker + beat) for anything that
+      shouldn't block a request/response cycle.
+    </p>
+    <div class="diagram-svg">
+      <svg viewBox="0 0 680 300" role="img" aria-labelledby="hld-title hld-desc">
+        <title id="hld-title">High-level component diagram</title>
+        <desc id="hld-desc">Browser to Django (DRF plus Channels) to PostgreSQL, Redis, Celery worker and beat.</desc>
+        <defs><marker id="arrow-hld" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--text-muted)"></path></marker></defs>
+        <g class="sd-node"><rect x="190" y="10" width="300" height="56" rx="10" class="sd-box sd-primary"></rect><text x="340" y="35" text-anchor="middle" class="sd-title">Browser</text><text x="340" y="53" text-anchor="middle" class="sd-sub">HTTP (JSON) + WebSocket</text></g>
+        <line x1="340" y1="66" x2="340" y2="100" class="sd-arrow" marker-end="url(#arrow-hld)"></line>
+        <g class="sd-node"><rect x="140" y="102" width="400" height="70" rx="10" class="sd-box sd-primary"></rect><text x="340" y="126" text-anchor="middle" class="sd-title">Django (ASGI, one process)</text><text x="340" y="144" text-anchor="middle" class="sd-sub">DRF viewsets · Channels consumers · service layer</text><text x="340" y="160" text-anchor="middle" class="sd-sub">config/asgi.py routes both protocols</text></g>
+        <path d="M240,172 L240,200 L120,200" class="sd-arrow" marker-end="url(#arrow-hld)"></path>
+        <path d="M340,172 L340,200" class="sd-arrow" marker-end="url(#arrow-hld)"></path>
+        <path d="M440,172 L440,200 L560,200" class="sd-arrow" marker-end="url(#arrow-hld)"></path>
+        <g class="sd-node"><rect x="20" y="202" width="200" height="56" rx="10" class="sd-box sd-data"></rect><text x="120" y="225" text-anchor="middle" class="sd-title">PostgreSQL</text><text x="120" y="243" text-anchor="middle" class="sd-sub">Supabase in production</text></g>
+        <g class="sd-node"><rect x="240" y="202" width="200" height="56" rx="10" class="sd-box sd-data"></rect><text x="340" y="225" text-anchor="middle" class="sd-title">Redis</text><text x="340" y="243" text-anchor="middle" class="sd-sub">cache · broker · channel layer</text></g>
+        <g class="sd-node"><rect x="460" y="202" width="200" height="56" rx="10" class="sd-box"></rect><text x="560" y="225" text-anchor="middle" class="sd-title">Celery worker + beat</text><text x="560" y="243" text-anchor="middle" class="sd-sub">async jobs · 3 scheduled jobs</text></g>
+      </svg>
+      <p class="sd-caption">One deployable Django image serves three roles (<code>web</code>/<code>worker</code>/<code>beat</code>) depending only on its container command — see <a href="../deployment/docker.html">Deployment → Docker</a>.</p>
+    </div>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

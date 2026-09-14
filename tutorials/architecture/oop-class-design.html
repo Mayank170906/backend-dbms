@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOP / Class Design — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "architecture/oop-class-design.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>OOP / <span class="accent-word">Class Design</span></h1>
+      <p class="page-subtitle">Every classic OOP idea, shown with the actual class from this project that demonstrates it — not a textbook example.</p>
+    </div>
+
+
+    <h2>Inheritance</h2>
+    <p>The custom <code>User</code> model inherits from Django's
+      <code>AbstractUser</code>, gaining username/password/permission
+      handling for free while adding only what's actually new:</p>
+    <pre><code>class User(AbstractUser):
+    email = models.EmailField("email address", unique=True)
+    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)</code></pre>
+    <p>Every model in the system inherits from <code>django.db.models.Model</code>
+      the same way — inheriting field descriptors, the query manager,
+      <code>save()</code>/<code>delete()</code>, and migration machinery,
+      then overriding only what needs to differ (see Polymorphism below for
+      an example that overrides <code>save()</code>/<code>delete()</code>
+      entirely).</p>
+
+    <h2>Encapsulation</h2>
+    <p>The service layer is encapsulation applied at the architecture
+      level: a caller (a view, a management command, a test) never
+      manipulates a task's assignment rows directly — it calls
+      <code>TaskService.assign()</code>, which hides <em>how</em> that's
+      validated and persisted:</p>
+    <pre><code>class TaskService:
+    @classmethod
+    @transaction.atomic
+    def assign(cls, *, task: Task, user, actor) -> TaskAssignment:
+        cls._ensure_project_member(project=task.project, user=user)
+        assignment, created = TaskAssignment.objects.get_or_create(task=task, user=user)
+        if created:
+            ActivityService.log(...)
+            NotificationService.notify(...)
+        return assignment</code></pre>
+    <p>The <code>_ensure_project_member</code> check is a private
+      implementation detail (the leading underscore is Python's
+      convention for "internal") — callers depend on the public interface
+      (<code>assign(task=, user=, actor=)</code>), not on how membership
+      happens to be verified today.</p>
+
+    <h2>Polymorphism</h2>
+    <p>Django's <code>GenericForeignKey</code> is polymorphism at the data
+      layer: an <code>ActivityLog</code> row's <code>target</code> can point
+      at a <code>Task</code>, a <code>Comment</code>, a <code>Workflow</code>,
+      or anything else — the same field, the same serializer code, resolving
+      to a different concrete type per row:</p>
+    <pre><code>class ActivityLog(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveBigIntegerField()
+    target = GenericForeignKey("content_type", "object_id")</code></pre>
+    <p>Method overriding is the more classic form of polymorphism, and
+      <code>ActivityLog</code> demonstrates that too — it overrides
+      <code>save()</code> and <code>delete()</code> from the base
+      <code>Model</code> class to change their behavior entirely (raising
+      instead of writing), while every other model relies on the
+      inherited default:</p>
+    <pre><code>def save(self, *args, **kwargs):
+    if self.pk is not None:
+        raise ValueError("ActivityLog entries are immutable and cannot be updated.")
+    super().save(*args, **kwargs)
+
+def delete(self, *args, **kwargs):
+    raise ValueError("ActivityLog entries cannot be deleted; they are a permanent audit trail.")</code></pre>
+    <p>Django REST Framework's <code>ModelViewSet</code> is the same idea
+      one layer up: every viewset in this project (<code>TaskViewSet</code>,
+      <code>ProjectViewSet</code>, …) inherits the same <code>list()</code>/
+      <code>create()</code>/<code>retrieve()</code>/<code>update()</code>/
+      <code>destroy()</code> methods, and each overrides only
+      <code>get_queryset()</code> and <code>perform_create()</code> to
+      supply its own scoping and validation — the HTTP dispatch logic
+      itself is never rewritten.</p>
+
+    <h2>Abstraction</h2>
+    <p>A view never knows <em>how</em> a workflow transition is validated —
+      only that calling <code>WorkflowService.transition_task()</code>
+      either succeeds or raises a specific, meaningful exception:</p>
+    <pre><code>try:
+    WorkflowService.transition_task(task=task, to_state=to_state, user=request.user)
+except ValueError as exc:
+    raise ValidationError(str(exc))
+except PermissionError as exc:
+    raise PermissionDenied(str(exc))</code></pre>
+    <p>Everything about sequential-state checking, role-list lookups, and
+      audit logging is abstracted behind that one call — the API view's
+      job is only to translate the two exception types into the right
+      HTTP status codes.</p>
+
+    <h2>Composition Over Inheritance</h2>
+    <p>Rather than a deep inheritance hierarchy of viewsets, this project
+      composes behavior via DRF's mixins and pluggable backends —
+      <code>filter_backends</code>, <code>permission_classes</code>, and
+      DRF's own mixin classes are all assembled onto a viewset rather than
+      inherited from a specific parent:</p>
+    <pre><code>class TaskViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = TaskFilter</code></pre>
+    <p><code>NotificationViewSet</code> composes even more explicitly,
+      picking only the two mixins it needs (list + retrieve) instead of the
+      full <code>ModelViewSet</code>, since notifications are never created
+      or deleted through the API directly:</p>
+    <pre><code>class NotificationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    ...</code></pre>
+
+    <h2>Class Methods vs. Static Methods vs. Instance Methods</h2>
+    <p>The service classes in this project are never instantiated — every
+      method is a <code>@staticmethod</code> or <code>@classmethod</code>,
+      because a service has no per-instance state to hold (unlike a model
+      instance, which <em>is</em> a row of data). A <code>@classmethod</code>
+      is used specifically when a method needs to call another method on
+      the same class (like <code>create_organization</code> calling
+      <code>cls._unique_slug(...)</code>):</p>
+    <pre><code>class ProjectService:
+    @staticmethod
+    def _unique_slug(*, organization, name: str) -> str: ...
+
+    @classmethod
+    @transaction.atomic
+    def create_project(cls, *, organization, owner, name, description="") -> Project:
+        cls._ensure_organization_member(organization=organization, user=owner)
+        project = Project.objects.create(..., slug=cls._unique_slug(organization=organization, name=name))
+        ...</code></pre>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

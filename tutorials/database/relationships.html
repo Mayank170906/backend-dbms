@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relationships — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "database/relationships.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Database: <span class="accent-word">Relationships</span></h1>
+      <p class="page-subtitle">Why PROTECT, CASCADE, and SET_NULL are each used where they are.</p>
+    </div>
+
+
+    <p>Every foreign key's <code>on_delete</code> is a deliberate choice, not the Django default left in place.</p>
+    <h2>PROTECT — single-owner relationships</h2>
+    <ul>
+      <li><code>Organization.owner</code> — an organization can't silently lose its owner.</li>
+      <li><code>Project.owner</code> — same reasoning at the project level.</li>
+      <li><code>Project.workflow</code>, <code>Task.workflow_state</code> — deleting a workflow/state a project or task actually depends on would silently corrupt that project/task's state; Django blocks the delete instead.</li>
+    </ul>
+    <h2>CASCADE — dependent rows that have no meaning without their parent</h2>
+    <ul>
+      <li>Membership rows (<code>Membership</code>, <code>TeamMembership</code>, <code>ProjectMembership</code>, <code>TaskAssignment</code>) — a membership without its organization/team/project/task is meaningless, so it's deleted along with its parent.</li>
+      <li><code>Team</code>, <code>Workflow</code>, <code>Project</code>, <code>Task</code>, <code>Label</code>, <code>Comment</code>, <code>WorkflowState</code>, <code>WorkflowTransition</code>, <code>ProjectExport</code> — all CASCADE from their owning organization/project/task/workflow.</li>
+    </ul>
+    <h2>SET_NULL — high-cardinality attribution fields</h2>
+    <ul>
+      <li><code>Task.created_by</code>, <code>Comment.author</code>, <code>ActivityLog.actor</code>, <code>ProjectExport.requested_by</code> — blocking every user deletion because they once created a task or left a comment would make account deletion impractical. The record is worth keeping even if authorship is lost.</li>
+    </ul>
+    <h2>GenericForeignKey — polymorphic targets</h2>
+    <p>
+      <code>ActivityLog.target</code> and <code>Notification.target</code> both use
+      <code>content_type</code> + <code>object_id</code> to point at any model, not one
+      fixed type — the same audit-log/notification row shape works whether the underlying
+      event was a task, a comment, or a workflow change. See
+      <a href="../architecture/oop-class-design.html">OOP → Polymorphism</a>.
+    </p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

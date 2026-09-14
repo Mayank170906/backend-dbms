@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utilities — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/utilities.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">Utilities</span></h1>
+      <p class="page-subtitle">The small, real helper functions — kept short because that's all there is.</p>
+    </div>
+
+
+<p>This project keeps genuinely reusable helpers to a minimum rather than building a speculative <code>utils.py</code> per app. What actually exists:</p>
+<ul>
+  <li><code>env_bool(name, default=False)</code> and <code>env_list(name, default="")</code> in <code>config/settings/base.py</code> — parse environment variables consistently (e.g. <code>"1"/"true"/"yes"/"on"</code> case-insensitively as <code>True</code> for <code>env_bool</code>; comma-split for <code>env_list</code>). Used for <code>DEBUG</code>, <code>ALLOWED_HOSTS</code>, <code>CORS_ALLOWED_ORIGINS</code>, <code>CSRF_TRUSTED_ORIGINS</code>, <code>SECURE_SSL_REDIRECT</code>.</li>
+  <li><code>apps/projects/caching.py::project_statistics_cache_key(*, project_id)</code> — a single-purpose cache-key builder, not a generic caching utility.</li>
+  <li><code>docker/entrypoint.sh</code>'s inline Python heredoc — a Postgres-readiness retry loop (30 attempts, 1s apart, 2s connect timeout) using <code>dj_database_url</code> + <code>psycopg</code>, run before <code>exec "$@"</code>.</li>
+</ul>
+<p>There is deliberately no general-purpose <code>utils</code> module — helper functions live next to the one thing that uses them.</p>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

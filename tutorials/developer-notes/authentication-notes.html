@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Authentication Notes — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "developer-notes/authentication-notes.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Developer Notes: <span class="accent-word">Authentication Notes</span></h1>
+      <p class="page-subtitle">Access vs. refresh tokens, rotation, and why WebSocket auth is a separate code path.</p>
+    </div>
+
+
+    <h2>Access token vs. refresh token</h2>
+    <p>The access token (30 minutes) is what's checked on every request; the refresh token (7 days) exists only to get a new access token without forcing a re-login. Never send the refresh token as a bearer credential on a normal API call — it's only ever posted to <code>login/refresh/</code>.</p>
+    <h2>Why rotation + blacklist together</h2>
+    <p><code>ROTATE_REFRESH_TOKENS</code> means every refresh call issues a brand-new refresh token; <code>BLACKLIST_AFTER_ROTATION</code> means the old one is immediately invalidated. Together, a refresh token can only ever be used once — if an attacker and the real user both try to use the same (stolen) refresh token, whichever uses it second gets rejected outright, which is itself a signal something is wrong.</p>
+    <h2>Why WebSocket auth is a different code path</h2>
+    <p>DRF's <code>JWTAuthentication</code> only runs inside the HTTP request/response cycle. A WebSocket handshake is a plain HTTP upgrade request from a browser that can't attach a custom <code>Authorization</code> header — so <code>config/channels_auth.py::JWTAuthMiddleware</code> reads the token from <code>?token=</code> instead and validates it with SimpleJWT's <code>AccessToken</code> class directly, setting <code>scope["user"]</code> for the consumer to use.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

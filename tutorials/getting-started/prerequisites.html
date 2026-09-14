@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prerequisites — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "getting-started/prerequisites.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Getting Started: <span class="accent-word">Prerequisites</span></h1>
+      <p class="page-subtitle">What you need installed before running the project locally.</p>
+    </div>
+
+
+    <ul>
+      <li><strong>Python 3.12</strong> — pinned in <code>.python-version</code>. The project targets <code>requires-python = "&gt;=3.12"</code> in <code>pyproject.toml</code>.</li>
+      <li><strong><a href="https://docs.astral.sh/uv/">uv</a></strong> — the dependency manager used instead of <code>pip</code>/<code>requirements.txt</code>. Installs from <code>pyproject.toml</code> + <code>uv.lock</code>.</li>
+      <li><strong>Docker + Docker Compose</strong> — needed only if you want to run via <a href="../getting-started/running-with-docker.html">Running with Docker</a> instead of a native setup.</li>
+      <li><strong>PostgreSQL 16</strong> — needed only for the native path; the Docker path provisions it for you via the <code>db</code> compose service (<code>postgres:16-alpine</code>).</li>
+      <li><strong>Redis 7</strong> — only required if you intend to exercise caching, Celery, or WebSocket features locally; the app degrades to not caching/broadcasting rather than crashing if it's unset, but Celery/Channels genuinely need it running. The compose <code>redis</code> service uses <code>redis:7-alpine</code>.</li>
+    </ul>
+    <div class="note">There is no <code>requirements.txt</code> in this repo — dependency state lives entirely in <code>pyproject.toml</code> and the committed <code>uv.lock</code>.</div>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

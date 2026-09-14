@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SRS — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "requirements/srs.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Software Requirements <span class="accent-word">Specification</span></h1>
+      <p class="page-subtitle">Formal requirements document for the Backend DBMS platform, in the traditional IEEE-830-style structure.</p>
+    </div>
+
+
+    <h2>1. Introduction</h2>
+    <h3>1.1 Purpose</h3>
+    <p>This document specifies the functional and non-functional requirements for a multi-tenant workflow and project management platform. It exists to make the system's scope and behavior explicit and testable — every requirement maps to real code (see <a href="../requirements/traceability-matrix.html">Traceability Matrix</a>).</p>
+    <h3>1.2 Scope</h3>
+    <p>The system lets an organization manage projects, tasks, and configurable workflows, with role-based authorization, real-time updates, background processing, and full-text search. It is backend-first: a REST API is the source of truth, and a bundled server-rendered frontend consumes that same API rather than the database directly.</p>
+    <h3>1.3 Definitions, Acronyms, Abbreviations</h3>
+    <p>See the <a href="../reference/glossary.html">Glossary</a>.</p>
+    <h3>1.4 Document Overview</h3>
+    <p>Section 2 describes the product at a high level. <a href="../requirements/functional-requirements.html">Functional Requirements</a> and <a href="../requirements/non-functional-requirements.html">Non-Functional Requirements</a> are broken out onto their own pages. Section 4 covers external interfaces.</p>
+
+    <h2>2. Overall Description</h2>
+    <h3>2.1 Product Perspective</h3>
+    <p>A new, self-contained system — not an extension of an existing product. It intentionally mirrors the feature shape of Jira/Linear/Trello (projects, tasks, configurable workflows, activity feeds) while using its own data model and implementation throughout.</p>
+    <h3>2.2 Product Functions</h3>
+    <ul>
+      <li>User registration, authentication (JWT), and password recovery</li>
+      <li>Organization creation and role-based membership management</li>
+      <li>Team management within an organization</li>
+      <li>Project creation, membership, and status tracking</li>
+      <li>Task creation, assignment, labeling, and commenting (with @mentions)</li>
+      <li>Administrator-defined workflows (states + role-gated transitions)</li>
+      <li>An immutable activity/audit log for every significant action</li>
+      <li>In-app notifications, delivered live over WebSocket</li>
+      <li>Cached, on-demand project statistics and analytics</li>
+      <li>PostgreSQL full-text search across tasks, projects, and comments</li>
+      <li>Asynchronous CSV export of a project's tasks</li>
+      <li>Periodic background jobs (due-date reminders, daily reports, token cleanup)</li>
+    </ul>
+    <h3>2.3 User Classes and Characteristics</h3>
+    <p>See <a href="../requirements/actors.html">Actors</a> for the full table.</p>
+    <h3>2.4 Operating Environment</h3>
+    <p>Server-side: Python 3.12, Django, PostgreSQL 16, Redis 7, run as Docker containers orchestrated by Docker Compose. Client-side: any modern browser (the bundled frontend uses vanilla JS, the Fetch API, and native WebSockets — no framework, no build step).</p>
+    <h3>2.5 Design and Implementation Constraints</h3>
+    <ul>
+      <li>No paid third-party APIs or services may be required to run the system.</li>
+      <li>PostgreSQL is the only supported database backend (the system deliberately uses Postgres-specific features — full-text search, array fields — rather than staying database-agnostic).</li>
+      <li>All business rules must be enforced server-side; the frontend is never trusted as an authorization boundary.</li>
+    </ul>
+    <h3>2.6 Assumptions and Dependencies</h3>
+    <p>Assumes a single PostgreSQL instance and a single Redis instance are reachable from every backend process. Assumes clients can maintain a persistent WebSocket connection for real-time features to be useful (the system remains fully functional over plain HTTP polling otherwise).</p>
+
+    <h2>3. Specific Requirements</h2>
+    <p>Broken out onto <a href="../requirements/functional-requirements.html">Functional Requirements</a> and <a href="../requirements/non-functional-requirements.html">Non-Functional Requirements</a>.</p>
+    <h3>3.3 Data Requirements</h3>
+    <p>See <a href="../database/er-diagram.html">Database → ER Diagram</a> for the full entity list, relationships, and indexing decisions.</p>
+
+    <h2>4. External Interface Requirements</h2>
+    <h3>4.1 API Interface</h3>
+    <p>A versioned REST API under <code>/api/v1/</code>, documented via an OpenAPI schema at <code>/api/schema/</code> and a browsable Swagger UI at <code>/api/docs/</code>. JSON request/response bodies throughout, JWT bearer-token authentication, consistent pagination and error response shapes.</p>
+    <h3>4.2 WebSocket Interface</h3>
+    <p>Two endpoints under <code>/ws/</code> — a per-project activity feed and a per-user notification stream — authenticated via a JWT passed as a query parameter.</p>
+    <h3>4.3 User Interface</h3>
+    <p>A server-rendered set of HTML pages (dashboard, organization detail, project detail with a Kanban board, notifications, search) that consume the same REST/WebSocket API as any external client would.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

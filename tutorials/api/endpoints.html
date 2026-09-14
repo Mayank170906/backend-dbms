@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endpoints — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "api/endpoints.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>API: <span class="accent-word">Endpoints</span></h1>
+      <p class="page-subtitle">Every real route, built directly from config/api_router.py and apps/accounts/api/urls.py.</p>
+    </div>
+
+
+    <h2>Auth (/api/v1/auth/)</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Auth</th></tr></thead><tbody>
+    <tr><td>POST</td><td>register/</td><td>AllowAny</td></tr>
+    <tr><td>POST</td><td>login/</td><td>AllowAny</td></tr>
+    <tr><td>POST</td><td>login/refresh/</td><td>AllowAny</td></tr>
+    <tr><td>POST</td><td>logout/</td><td>IsAuthenticated</td></tr>
+    <tr><td>GET</td><td>me/</td><td>IsAuthenticated</td></tr>
+    <tr><td>POST</td><td>password-reset/</td><td>AllowAny</td></tr>
+    <tr><td>POST</td><td>password-reset/confirm/</td><td>AllowAny</td></tr>
+    </tbody></table>
+
+    <h2>users</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Auth / Permission</th></tr></thead><tbody>
+    <tr><td>GET</td><td>/users/, /users/{id}/</td><td>IsAuthenticated (list/retrieve only)</td></tr>
+    </tbody></table>
+
+    <h2>organizations</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Permission</th></tr></thead><tbody>
+    <tr><td>GET/POST</td><td>/organizations/</td><td>IsAuthenticated + IsOrganizationAdmin</td></tr>
+    <tr><td>GET/PUT/PATCH/DELETE</td><td>/organizations/{id}/</td><td>IsOrganizationAdmin (object-level)</td></tr>
+    <tr><td>GET/POST</td><td>/organizations/{id}/members/</td><td>same</td></tr>
+    </tbody></table>
+
+    <h2>teams</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Permission</th></tr></thead><tbody>
+    <tr><td>GET/POST/PUT/PATCH/DELETE</td><td>/teams/[{id}/]</td><td>IsAuthenticated, scoped to caller's orgs</td></tr>
+    </tbody></table>
+
+    <h2>projects</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Permission</th></tr></thead><tbody>
+    <tr><td>GET/POST</td><td>/projects/</td><td>IsAuthenticated + IsProjectManager</td></tr>
+    <tr><td>GET/PUT/PATCH/DELETE</td><td>/projects/{id}/</td><td>IsProjectManager (object-level)</td></tr>
+    <tr><td>GET/POST</td><td>/projects/{id}/members/</td><td>same</td></tr>
+    <tr><td>GET</td><td>/projects/{id}/activity/</td><td>same</td></tr>
+    <tr><td>GET</td><td>/projects/{id}/statistics/</td><td>same</td></tr>
+    <tr><td>POST</td><td>/projects/{id}/export/</td><td>same — returns 202, queues a Celery task</td></tr>
+    <tr><td>GET</td><td>/projects/{id}/exports/</td><td>same</td></tr>
+    </tbody></table>
+
+    <h2>tasks</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Permission</th></tr></thead><tbody>
+    <tr><td>GET/POST/PUT/PATCH/DELETE</td><td>/tasks/[{id}/]</td><td>IsAuthenticated, scoped to project membership</td></tr>
+    <tr><td>POST</td><td>/tasks/{id}/assign/</td><td>same</td></tr>
+    <tr><td>POST</td><td>/tasks/{id}/transition/</td><td>same, plus workflow role gating</td></tr>
+    <tr><td>GET/POST</td><td>/tasks/{id}/comments/</td><td>same</td></tr>
+    </tbody></table>
+
+    <h2>labels</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Permission</th></tr></thead><tbody>
+    <tr><td>GET/POST/PUT/PATCH/DELETE</td><td>/labels/[{id}/]</td><td>IsAuthenticated, scoped by project membership</td></tr>
+    </tbody></table>
+
+    <h2>workflows</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Permission</th></tr></thead><tbody>
+    <tr><td>GET/POST/PUT/PATCH/DELETE</td><td>/workflows/[{id}/]</td><td>IsAuthenticated, scoped by org membership</td></tr>
+    <tr><td>POST</td><td>/workflows/{id}/states/</td><td>same</td></tr>
+    <tr><td>POST</td><td>/workflows/{id}/transitions/</td><td>same</td></tr>
+    </tbody></table>
+
+    <h2>notifications</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Permission</th></tr></thead><tbody>
+    <tr><td>GET</td><td>/notifications/[{id}/]</td><td>IsAuthenticated, scoped to <code>recipient=request.user</code></td></tr>
+    <tr><td>POST</td><td>/notifications/{id}/read/</td><td>same</td></tr>
+    <tr><td>POST</td><td>/notifications/read-all/</td><td>same</td></tr>
+    </tbody></table>
+
+    <h2>search</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Permission</th></tr></thead><tbody>
+    <tr><td>GET</td><td>/search/?q=</td><td>IsAuthenticated, results scoped to caller's memberships</td></tr>
+    </tbody></table>
+
+    <h2>WebSocket</h2>
+    <table><thead><tr><th>Path</th><th>Consumer</th></tr></thead><tbody>
+    <tr><td>ws/projects/&lt;project_id&gt;/</td><td>ProjectConsumer</td></tr>
+    <tr><td>ws/notifications/</td><td>NotificationConsumer</td></tr>
+    </tbody></table>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

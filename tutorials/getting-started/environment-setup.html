@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Environment Setup — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "getting-started/environment-setup.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Getting Started: <span class="accent-word">Environment Setup</span></h1>
+      <p class="page-subtitle">Configuring .env for local development.</p>
+    </div>
+
+
+    <pre><code>cp .env.example .env</code></pre>
+    <p>
+      <code>config/settings/base.py</code> loads this file via
+      <code>python-dotenv</code> at import time (without overriding any real
+      environment variables already set). The variables that matter for a
+      native (non-Docker) local run are:
+    </p>
+    <table>
+      <thead><tr><th>Variable</th><th>Local dev value</th></tr></thead>
+      <tbody>
+        <tr><td><code>DJANGO_SETTINGS_MODULE</code></td><td><code>config.settings.development</code> (also <code>manage.py</code>'s own default)</td></tr>
+        <tr><td><code>DEBUG</code></td><td><code>True</code></td></tr>
+        <tr><td><code>SECRET_KEY</code></td><td>Any value — <code>development.py</code> falls back to a hardcoded insecure key if unset, so this is optional locally (never rely on that fallback anywhere but a laptop).</td></tr>
+        <tr><td><code>ALLOWED_HOSTS</code></td><td><code>localhost,127.0.0.1</code> (the base default)</td></tr>
+        <tr><td><code>DATABASE_URL</code></td><td>Points at your local/native Postgres — see <a href="../getting-started/database-setup.html">Database Setup</a></td></tr>
+        <tr><td><code>REDIS_URL</code> / <code>CELERY_BROKER_URL</code> / <code>CELERY_RESULT_BACKEND</code> / <code>CACHE_URL</code> / <code>CHANNELS_REDIS_URL</code></td><td>Only needed if running Redis-backed features locally</td></tr>
+      </tbody>
+    </table>
+    <p>The full, authoritative variable reference (including production-only variables) is on <a href="../reference/environment-variables.html">Reference → Environment Variables</a>.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Applications — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/applications.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">Applications</span></h1>
+      <p class="page-subtitle">The 9 Django apps under apps/, one paragraph each.</p>
+    </div>
+
+
+    <details class="accordion" open>
+      <summary>🔑 accounts</summary>
+      <div class="accordion-body"><p>Owns the custom <code>User</code> model (<code>AUTH_USER_MODEL = "accounts.User"</code>) and every JWT auth endpoint: register, login, logout, refresh, password reset, "me", and a searchable user directory. Every other app's foreign keys to a user point here.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>🏢 organizations</summary>
+      <div class="accordion-body"><p>The tenant boundary. <code>Organization</code>, <code>Membership</code> (roles OWNER/ADMIN/MEMBER/VIEWER), <code>Team</code>, and <code>TeamMembership</code>. Also owns the one custom management command, <code>seed_data</code>.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>🔀 workflows</summary>
+      <div class="accordion-body"><p>Per-organization, admin-defined pipelines: <code>Workflow</code> → ordered <code>WorkflowState</code>s → explicit, role-gated <code>WorkflowTransition</code>s. <code>WorkflowService.transition_task</code> is the sole authority for moving a task between states.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>📁 projects</summary>
+      <div class="accordion-body"><p><code>Project</code>, <code>ProjectMembership</code> (roles MANAGER/DEVELOPER/VIEWER), <code>ProjectExport</code>. Also owns project statistics (<code>statistics.py</code>, cache-aside via <code>caching.py</code>), full-text search vector maintenance (<code>search.py</code>), the WebSocket consumer for the project activity feed (<code>consumers.py</code>/<code>routing.py</code>), and the CSV export Celery task.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>✅ tasks</summary>
+      <div class="accordion-body"><p><code>Task</code>, <code>Label</code>, <code>TaskAssignment</code>. Owns task search-vector maintenance and the two scheduled/async task functions (due-tomorrow notifications, and the signals that invalidate project-statistics cache on any task change).</p></div>
+    </details>
+    <details class="accordion">
+      <summary>💬 comments</summary>
+      <div class="accordion-body"><p><code>Comment</code>, scoped to a <code>Task</code>. Owns <code>@username</code> mention parsing and its own search-vector maintenance.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>📜 activity</summary>
+      <div class="accordion-body"><p><code>ActivityLog</code> — an append-only audit trail via <code>GenericForeignKey</code>, scoped to an organization and optionally a project. <code>ActivityService.log()</code> is the single write path every other app's service calls into, and it broadcasts to the project WebSocket group via <code>transaction.on_commit()</code>.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>🔔 notifications</summary>
+      <div class="accordion-body"><p><code>Notification</code>, scoped to a recipient. <code>NotificationService.notify()</code> is called by every other app's service on assignment/mention/transition/export/report events, and broadcasts to the per-user WebSocket group.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>🔍 analytics</summary>
+      <div class="accordion-body"><p>No models of its own — a thin <code>api/</code> package exposing <code>SearchView</code>, which runs Postgres full-text search across <code>Project</code>/<code>Task</code>/<code>Comment</code>, each pre-filtered by the caller's real membership.</p></div>
+    </details>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serializers — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/serializers.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">Serializers</span></h1>
+      <p class="page-subtitle">Every serializer, its fields, and its custom validation.</p>
+    </div>
+
+
+<details class="accordion" open>
+<summary>accounts</summary>
+<div class="accordion-body">
+<ul>
+<li><code>UserSerializer</code> — id, username, email, first_name, last_name, avatar, created_at; all read-only.</li>
+<li><code>RegisterSerializer</code> — id, username, email, password (write-only, <code>validate_password</code>), first_name, last_name; custom <code>create()</code> calls <code>User.objects.create_user(**validated_data)</code>.</li>
+<li><code>PasswordResetRequestSerializer</code> — email. <code>PasswordResetConfirmSerializer</code> — uid, token, new_password. <code>LogoutSerializer</code> — refresh.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>organizations</summary>
+<div class="accordion-body">
+<ul>
+<li><code>OrganizationSerializer</code> — id, name, slug, description, owner, created_at, updated_at; read-only: id/slug/owner/created_at/updated_at.</li>
+<li><code>MembershipSerializer</code> — nested read-only <code>user = UserSerializer()</code>; id, organization, user, role, joined_at.</li>
+<li><code>TeamSerializer</code> — id, organization, name, description, created_at.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>projects</summary>
+<div class="accordion-body">
+<ul>
+<li><code>ProjectSerializer</code> — organization, name, slug, description, owner, status, workflow, created_at, updated_at; read-only id/slug/owner/created_at/updated_at.</li>
+<li><code>ProjectMembershipSerializer</code> — nested read-only <code>user</code>.</li>
+<li><code>ProjectExportSerializer</code> — <code>file_url = SerializerMethodField()</code> (builds an absolute URI from request context); all fields read-only.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>tasks</summary>
+<div class="accordion-body">
+<ul>
+<li><code>LabelSerializer</code> — id, project, name, color.</li>
+<li><code>TaskSerializer</code> — <code>assignees</code> PK-only read-only + nested read-only <code>assignees_detail</code>/<code>created_by_detail</code>; <code>labels</code> writable; read-only id/created_by/workflow_state/created_at/updated_at. Custom <code>validate_labels(value)</code> rejects labels from a different project. Custom <code>validate(attrs)</code> rejects changing <code>project</code> on update.</li>
+<li><code>TaskAssignSerializer</code> — user_id. <code>TaskTransitionSerializer</code> — to_state_id.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>comments</summary>
+<div class="accordion-body">
+<p><code>CommentSerializer</code> — nested read-only <code>author_detail</code>; read-only id/task/author/created_at/updated_at.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>workflows</summary>
+<div class="accordion-body">
+<ul>
+<li><code>WorkflowStateSerializer</code> — read-only id/workflow/slug.</li>
+<li><code>WorkflowTransitionSerializer</code> — read-only id/workflow/created_at.</li>
+<li><code>WorkflowSerializer</code> — nested read-only <code>states</code>/<code>transitions</code>.</li>
+</ul>
+</div>
+</details>
+
+<details class="accordion">
+<summary>activity</summary>
+<div class="accordion-body">
+<p><code>ActivityLogSerializer</code> — <code>actor</code> via <code>SlugRelatedField(slug_field="username")</code>, <code>object_type</code> from <code>content_type.model</code>; all read-only.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>notifications</summary>
+<div class="accordion-body">
+<p><code>NotificationSerializer</code> — id, notification_type, message, object_id, is_read, created_at, read_at; all read-only.</p>
+</div>
+</details>
+
+<details class="accordion">
+<summary>analytics</summary>
+<div class="accordion-body">
+<p><code>SearchResultSerializer(Serializer)</code> exists only for OpenAPI schema documentation — the view builds its actual response manually.</p>
+</div>
+</details>
+
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

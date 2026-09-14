@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indexes — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "database/indexes.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Database: <span class="accent-word">Indexes</span></h1>
+      <p class="page-subtitle">Every real Index and GinIndex, tied to the query it serves.</p>
+    </div>
+
+
+    <table>
+      <thead><tr><th>Model</th><th>Index</th><th>Serves</th></tr></thead>
+      <tbody>
+        <tr><td>Organization</td><td><code>Index(["name"])</code></td><td>directory-style lookups</td></tr>
+        <tr><td>Membership</td><td><code>Index(["organization","role"])</code></td><td>"who are the admins of org X" queries</td></tr>
+        <tr><td>Project</td><td><code>Index(["organization","status"])</code></td><td>the <code>filterset_fields=["organization","status"]</code> filter on <code>ProjectViewSet</code></td></tr>
+        <tr><td>Project</td><td><code>GinIndex(["search_vector"], name="project_search_vector_gin")</code></td><td>full-text search</td></tr>
+        <tr><td>ProjectMembership</td><td><code>Index(["project","role"])</code></td><td>"who are the managers of project X"</td></tr>
+        <tr><td>Task</td><td><code>Index(["project","priority"])</code>, <code>Index(["project","due_date"])</code>, <code>Index(["project","workflow_state"])</code></td><td>the task list's common filter/sort combinations</td></tr>
+        <tr><td>Task</td><td><code>GinIndex(["search_vector"], name="task_search_vector_gin")</code></td><td>full-text search</td></tr>
+        <tr><td>Comment</td><td><code>Index(["task","created_at"])</code></td><td>fetching a task's comment thread in order</td></tr>
+        <tr><td>Comment</td><td><code>GinIndex(["search_vector"], name="comment_search_vector_gin")</code></td><td>full-text search</td></tr>
+        <tr><td>ActivityLog</td><td><code>Index(["organization","created_at"])</code>, <code>Index(["project","created_at"])</code>, <code>Index(["content_type","object_id"])</code></td><td>org/project activity feeds, plus GFK reverse lookups</td></tr>
+        <tr><td>Notification</td><td><code>Index(["recipient","is_read"])</code></td><td>a user's unread-notification count/list</td></tr>
+      </tbody>
+    </table>
+    <p><code>tests/test_performance.py</code> asserts the task list's query count stays fixed regardless of row count — see <a href="../developer-notes/orm-notes.html">Developer Notes → ORM Notes</a> for the <code>select_related</code>/<code>prefetch_related</code> side of that.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

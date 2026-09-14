@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Structure — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "codebase/project-structure.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Codebase: <span class="accent-word">Project Structure</span></h1>
+      <p class="page-subtitle">The repository tree, annotated by what each entry actually does.</p>
+    </div>
+
+
+    <pre><code>backend-dbms/
+├── apps/                    9 Django apps — see Applications
+├── config/                  project package: settings, urls, asgi/wsgi, celery
+│   └── settings/
+│       ├── base.py          shared settings
+│       ├── development.py   DEBUG=True, permissive CORS, insecure-key fallback
+│       └── production.py    DEBUG=False, hard env-var guards, HTTPS/HSTS
+├── tests/                   17 pytest files — all tests live here, not per-app
+├── docker/
+│   └── entrypoint.sh        waits for Postgres before exec'ing the container command
+├── templates/                server-rendered pages (dashboard/login/etc.), zero ORM access
+├── static/                   STATICFILES_DIRS source (pre-collectstatic)
+├── staticfiles/               STATIC_ROOT — collectstatic output, WhiteNoise-served
+├── media/                     MEDIA_ROOT — user uploads (avatars, exports); local filesystem, not object storage
+├── tutorials/                 this documentation site
+├── Dockerfile
+├── docker-compose.yml         dev stack: db, redis, web, worker, beat
+├── docker-compose.prod.yml    prod stack: no bind mount, daphne, .env.production
+├── pyproject.toml / uv.lock   dependency management (no requirements.txt)
+├── manage.py                  defaults DJANGO_SETTINGS_MODULE to development
+├── .env.example / .env.production.example
+└── .github/workflows/deploy-tutorials.yml   the only CI/CD in the repo (Pages deploy for this site)</code></pre>
+    <div class="note">
+      Two entries at repo root are local runtime artifacts, not source:
+      <code>celerybeat-schedule</code> (Celery beat's on-disk schedule database) and a
+      stray empty <code>static;C</code> directory. Neither is meaningful to read or edit.
+    </div>
+    <p>See <a href="../codebase/applications.html">Applications</a> for what's inside <code>apps/</code>, and <a href="../codebase/configuration.html">Configuration</a> for what's inside <code>config/settings/</code>.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Major Business Workflows — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "workflows/major-business-workflows.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Major Business <span class="accent-word">Workflows</span></h1>
+      <p class="page-subtitle">The task lifecycle end to end, naming the exact service method behind each step.</p>
+    </div>
+
+
+    <table>
+      <thead><tr><th>Step</th><th>Trigger</th><th>Service method</th><th>Side effects</th></tr></thead>
+      <tbody>
+        <tr><td>1. Create</td><td>POST /tasks/</td><td><code>TaskService.create_task</code></td><td>ActivityLog entry</td></tr>
+        <tr><td>2. Label</td><td>labels field on create/update</td><td><code>TaskService.add_label</code></td><td>rejects cross-project labels</td></tr>
+        <tr><td>3. Assign</td><td>POST /tasks/{id}/assign/</td><td><code>TaskService.assign</code></td><td>ActivityLog entry, Notification to assignee</td></tr>
+        <tr><td>4. Comment / mention</td><td>POST /tasks/{id}/comments/</td><td><code>CommentService.add_comment</code></td><td>ActivityLog entry, Notification per real mentioned member</td></tr>
+        <tr><td>5. Transition</td><td>POST /tasks/{id}/transition/</td><td><code>WorkflowService.transition_task</code></td><td>ActivityLog entry, Notification to other assignees</td></tr>
+        <tr><td>6. Export</td><td>POST /projects/{id}/export/</td><td><code>export_project_tasks_csv</code> (Celery)</td><td>ProjectExport row updated, export_ready Notification</td></tr>
+      </tbody>
+    </table>
+    <p>Every step 1–5 above is wrapped in <code>@transaction.atomic</code>, so the "write plus its audit trail plus its notification" always happens together or not at all.</p>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

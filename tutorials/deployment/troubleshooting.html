@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('docs-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Troubleshooting — Backend DBMS Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<script>window.DOCS_BASE = "../"; window.DOCS_PAGE = "deployment/troubleshooting.html";</script>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a class="brand" href="../index.html">Backend<span>DBMS</span> Docs</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌓</button>
+    </div>
+    <button id="search-trigger" class="search-trigger" type="button">Search docs… <span><kbd>Ctrl</kbd> <kbd>K</kbd></span></button>
+    <nav id="nav-root"></nav>
+  </aside>
+  <main class="content">
+    <div class="page-hero">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1>Deployment: <span class="accent-word">Troubleshooting</span></h1>
+      <p class="page-subtitle">Real problems, their cause, and the fix.</p>
+    </div>
+
+
+    <details class="accordion" open>
+      <summary>connection to server at "127.0.0.1", port 5432 failed: Connection refused</summary>
+      <div class="accordion-body"><p>Django is trying to connect to Postgres on localhost instead of reading <code>DATABASE_URL</code>. Point <code>DATABASE_URL</code> at the real database (Supabase in production) and confirm the settings module actually parses it.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>DATABASE_URL missing during Docker build</summary>
+      <div class="accordion-body"><p><code>RuntimeError: DATABASE_URL environment variable must be set in production.</code> — raised because the Docker build runs a Django management command before Render's runtime environment exists. Let build-time commands like <code>collectstatic</code> run against a placeholder <code>DATABASE_URL</code> (see the Dockerfile's <code>RUN</code> step) instead of hard-requiring it via <code>os.environ[...]</code>.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Invalid HTTP_HOST header</summary>
+      <div class="accordion-body"><p>The deployment's hostname is missing from <code>ALLOWED_HOSTS</code>, or was entered with an <code>https://</code> prefix (Django rejects a scheme in this setting). Use the bare hostname.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Boot log shows "using settings 'config.settings.development'"</summary>
+      <div class="accordion-body"><p><code>DJANGO_SETTINGS_MODULE</code> isn't set to <code>config.settings.production</code> in the deployment's environment — check for a hardcoded default in <code>manage.py</code>/<code>wsgi.py</code>/<code>asgi.py</code> or the compose/Render command.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>"You have N unapplied migration(s)"</summary>
+      <div class="accordion-body"><p>Normal for a freshly provisioned database. Run <code>python manage.py migrate</code> against it — ideally as a release/pre-deploy step rather than manually after each deploy. See <a href="../database/migrations.html">Database → Migrations</a>.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Static files missing / unstyled admin</summary>
+      <div class="accordion-body"><p><code>collectstatic</code> didn't run, or <code>STATIC_ROOT</code>/WhiteNoise's <code>STORAGES["staticfiles"]</code> isn't configured. This project's Dockerfile always runs <code>collectstatic</code> at build time, so this usually means a customized image skipped that step.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Redis connection refused</summary>
+      <div class="accordion-body"><p>Django/Celery/Channels is trying <code>redis://localhost:6379</code> in an environment with no Redis service. Provision a real Redis instance and point <code>REDIS_URL</code>/<code>CACHE_URL</code>/<code>CELERY_BROKER_URL</code>/<code>CHANNELS_REDIS_URL</code> at it, or accept those features are unavailable in that deployment — see <a href="../overview/current-status.html">Current Status</a>.</p></div>
+    </details>
+    <details class="accordion">
+      <summary>Container exits immediately / never becomes healthy</summary>
+      <div class="accordion-body"><p>Check <code>docker/entrypoint.sh</code>'s Postgres-readiness loop isn't stuck (30 retries, 1s apart) — usually means <code>DATABASE_URL</code>/<code>POSTGRES_HOST</code> points at a database that isn't actually reachable from the container's network.</p></div>
+    </details>
+    
+
+    <div class="page-nav" id="page-nav"></div>
+    <footer class="site-footer">
+      Documentation for the Backend DBMS project · generated as a static site, deployable as-is via GitHub Pages.
+    </footer>
+  </main>
+</div>
+<div id="search-overlay" class="search-overlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Search docs…" autocomplete="off">
+      <span class="search-esc">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+<script src="../assets/js/nav-data.js"></script>
+<script src="../assets/js/search-index.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
